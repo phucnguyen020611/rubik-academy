@@ -1,0 +1,57 @@
+import { L, type Tx } from '../i18n-core.ts'
+import type { MaskName } from './beginner.ts'
+
+export interface IcebergItem {
+  id: string
+  name: string
+  tier: number
+  title: Tx
+  desc: Tx
+  alg?: string
+  pre?: string
+  mask?: MaskName
+  link?: string
+}
+
+export const TIERS: { name: Tx; hint: Tx }[] = [
+  { name: L('Đỉnh băng', 'The tip'), hint: L('Ai học CFOP cũng biết', 'Every CFOP solver knows these') },
+  { name: L('Mặt nước', 'The waterline'), hint: L('Khi bạn bắt đầu muốn nhanh hơn', 'When you start chasing time') },
+  { name: L('Dưới sâu', 'Deep water'), hint: L('Từ sub-20 xuống sub-15', 'Sub-20 to sub-15') },
+  { name: L('Vực thẳm', 'The abyss'), hint: L('Sub-12 trở xuống', 'Sub-12 and below') },
+  { name: L('Đáy biển', 'The sea floor'), hint: L('Dành cho người thật sự mê', 'For the truly obsessed') },
+]
+
+export const ICEBERG: IcebergItem[] = [
+  { id: 'cross', name: 'Cross', tier: 0, title: L('Dấu thập', 'Cross'), desc: L('Bước đầu của CFOP: giải 4 cạnh ở mặt đáy cho khớp với tâm. Người giải nhanh lên kế hoạch cả dấu thập trong 15 giây quan sát và làm trong 8 nước trở xuống.', 'Step one of CFOP: solve the four bottom edges so they match the centres. Fast solvers plan the whole cross during the 15-second inspection and do it in 8 moves or fewer.'), alg: 'U F2 U R2 U2 B2 U L2', mask: 'cross', link: '/learn/beginner?step=2' },
+  { id: 'f2l', name: 'F2L', tier: 0, title: L('Hai tầng đầu', 'First two layers'), desc: L('Ghép từng cặp góc và cạnh ở tầng trên rồi chèn cả cặp vào slot. Có 41 trường hợp, nhưng hiểu cách nó chạy quan trọng hơn học thuộc.', 'Pair up a corner and an edge on top, then insert them together. There are 41 cases, but understanding how pairs move matters more than memorising.'), alg: "U R U' R' U' F' U F", pre: "R U R' U R U2 R'", mask: 'f2lcase', link: '/learn/f2l' },
+  { id: 'oll', name: 'OLL', tier: 0, title: L('Định hướng tầng cuối', 'Orient the last layer'), desc: L('Một công thức để cả mặt trên cùng màu. Có 57 trường hợp; người mới nên bắt đầu với bản 2 bước chỉ 10 công thức.', 'One algorithm to make the whole top one colour. There are 57 cases; start with the 2-look version, just 10 algorithms.'), alg: "R U R' U R U2 R'", mask: 'oll', link: '/learn/oll' },
+  { id: 'pll', name: 'PLL', tier: 0, title: L('Hoán vị tầng cuối', 'Permute the last layer'), desc: L('Bước cuối: đổi chỗ các viên tầng trên để hoàn thành. 21 trường hợp, cái nào cũng có tên riêng như T, Y, J, U.', 'The last step: move the top pieces into place. 21 cases, each with a name like T, Y, J or U.'), alg: "R U R' U' R' F R2 U' R' U' R U R' F'", link: '/learn/pll' },
+
+  { id: 'sledge', name: 'Sledge/Hedge', tier: 1, title: L('Sledgehammer và Hedgeslammer', 'Sledgehammer & Hedgeslammer'), desc: L("Sledge là R' F R F', Hedge là F R' F' R. Hai chuỗi ngắn này dùng để ghép hoặc tách cặp F2L mà không phải xoay cả khối.", "Sledge is R' F R F', Hedge is F R' F' R. Two short triggers for making or breaking F2L pairs without rotating the cube."), alg: "R' F R F'", mask: 'f2lcase' },
+  { id: 'front-slot', name: 'Front Slot', tier: 1, title: L('Slot phía trước', 'Front slots'), desc: L('Hai slot phía trước (trước phải, trước trái) là dễ nhìn nhất. Ban đầu ai cũng xoay cả khối để luôn chèn vào slot trước bên phải.', 'The two front slots are the easiest to see. Most people start by rotating the cube so they always insert into the front-right slot.'), alg: "U R U' R'", mask: 'f2lcase' },
+  { id: 'xcross', name: 'Xcross', tier: 1, title: L('Xcross', 'Xcross'), desc: L('Giải dấu thập cùng lúc với một cặp F2L. Tiết kiệm được 1 đến 2 giây nhưng cần quan sát rất tốt.', 'Solve the cross and one F2L pair at the same time. Saves a second or two, but you need sharp inspection.'), alg: "F' D R' F D' R U R' F2", mask: 'xcross' },
+  { id: '2side', name: '2-side PLL recog', tier: 1, title: L('Nhận PLL qua 2 mặt', 'Two-sided PLL recognition'), desc: L('Chỉ cần nhìn hai mặt bên (6 sticker) là biết đang gặp PLL nào, dựa vào đèn pha, khối 2×1, khối 3×1 và màu đối diện.', 'Tell the PLL from just two sides (six stickers) by spotting headlights, 2×1 blocks, 3×1 blocks and opposite colours.'), alg: "R U R' F' R U R' U' R' F R2 U' R'" },
+  { id: 'backslot', name: 'Back Slot', tier: 1, title: L('Slot phía sau', 'Back slots'), desc: L("Chèn thẳng vào slot sau mà không xoay khối, ví dụ R' U R hoặc L U' L'.", "Insert straight into a back slot without rotating, for example R' U R or L U' L'."), alg: "U' R' U R", mask: 'all' },
+  { id: 'freefop', name: 'Freefop', tier: 1, title: L('FreeFOP', 'FreeFOP'), desc: L('Không làm dấu thập trước mà tự do xây một khối 2×2×2 hoặc xcross rồi mở rộng ra. Ít công thức, nhiều suy nghĩ hơn.', 'Skip the cross-first rule: build a free 2×2×2 block or an xcross, then extend it. Fewer algorithms, more thinking.'), link: '/play' },
+  { id: 'keyhole', name: 'Keyhole', tier: 1, title: L('Keyhole', 'Keyhole F2L'), desc: L("Kỹ thuật ở giữa người mới và F2L: dùng một slot còn trống để chèn riêng góc hoặc cạnh, ví dụ D R U' R' D'. Dễ hiểu nhưng tốn nước.", "A stepping stone between beginner and F2L: use an empty slot to insert a single corner or edge, like D R U' R' D'. Easy to get, but costs moves."), alg: "D R U' R' D'", mask: 'f2l' },
+  { id: 'auf', name: 'AUF', tier: 1, title: L('Chỉnh mặt U', 'Adjust U face'), desc: L('Nước U cuối cùng (hoặc đầu tiên) để căn tầng trên. Đoán trước được nó trước khi PLL kết thúc giúp bạn tiết kiệm khoảng nửa giây.', 'The final (or first) U turn that lines the top layer up. Predicting it before PLL ends saves around half a second.'), alg: "U R U R' U' R' F R2 U' R' U' R U R' F' U2" },
+  { id: '2gen', name: '2GEN', tier: 1, title: L('Chỉ dùng hai mặt', 'Two-generator'), desc: L('Chuỗi chỉ xoay hai mặt, thường là R và U. Tay không phải đổi thế cầm nên làm rất nhanh, Sune là ví dụ quen thuộc.', 'Sequences that only turn two faces, usually R and U. No regrips needed, so they are very fast. Sune is the classic example.'), alg: "R U R' U R U2 R'", mask: 'oll' },
+
+  { id: '2gll', name: '2GLL', tier: 2, title: L('2GLL', '2GLL'), desc: L('Khi cạnh đã đúng hướng và góc đã đúng hoán vị, cả tầng cuối giải được bằng một công thức chỉ dùng R và U. Có 84 trường hợp.', 'With edges oriented and corners already permuted, the whole last layer can be solved with one R/U-only algorithm. 84 cases.'), alg: "R U R' U R U' R' U R U2 R'" },
+  { id: 'c1', name: 'C +1', tier: 2, title: L('Cross + 1', 'Cross + 1'), desc: L('Lúc quan sát, lên kế hoạch dấu thập và theo dõi luôn cặp F2L đầu tiên, để xong dấu thập là chèn được ngay.', 'During inspection, plan the cross and track your first F2L pair, so you can insert it the moment the cross is done.') },
+  { id: 'multislot', name: 'Multislot', tier: 2, title: L('Chèn nhiều slot', 'Multislotting'), desc: L('Chèn hai cặp cùng lúc, hoặc chèn một cặp trong khi chuẩn bị luôn cặp tiếp theo.', 'Insert two pairs at once, or set up the next pair while inserting the current one.'), alg: "R U R' U' L' U L", mask: 'f2l' },
+  { id: 'ols', name: 'OLS', tier: 2, title: L('Orient Last Slot', 'Orient Last Slot'), desc: L('Chèn cặp cuối và định hướng tầng trên trong cùng một công thức. Gồm hai bộ VLS và HLS, cộng lại vài trăm trường hợp.', 'Insert the last pair and orient the last layer in one go. Split into VLS and HLS, a few hundred cases between them.') },
+  { id: 'eols', name: 'EOLS', tier: 2, title: L('EOLS', 'EOLS'), desc: L('Chèn cặp cuối đồng thời định hướng các cạnh tầng trên, để OLL chỉ còn 7 trường hợp. Là bước chuẩn bị cho ZBLL.', 'Insert the last pair while orienting the top edges, leaving only 7 OLL cases. The usual lead-in to ZBLL.') },
+  { id: 'ollcp', name: 'OLLCP', tier: 2, title: L('OLLCP', 'OLLCP'), desc: L('Giải OLL và hoán vị góc cùng lúc, để PLL chỉ còn các ca đổi cạnh (U, H, Z). 331 công thức.', 'Solve OLL and permute corners together, so PLL is always an edges-only case (U, H, Z). 331 algorithms.') },
+  { id: 'comm', name: 'Commutators', tier: 2, title: L('Hoán tử', 'Commutators'), desc: L("Dạng A B A' B': chỉ đụng tới vài viên, phần còn lại giữ nguyên. Đây là công cụ chính khi giải bịt mắt và giải ít nước. Ví dụ đổi chỗ 3 góc: [R U R', D].", "The A B A' B' pattern: it touches a few pieces and leaves the rest alone. The main tool in blindfolded and fewest-moves solving. Example 3-corner cycle: [R U R', D]."), alg: "R U R' D R U' R' D'", mask: 'all' },
+  { id: 'eocross', name: 'EOcross', tier: 2, title: L('EOcross', 'EOcross'), desc: L('Định hướng toàn bộ cạnh trong lúc giải dấu thập (phương pháp ZZ). Sau đó F2L chỉ cần xoay R, U, L.', 'Orient every edge while solving the cross (the ZZ method). After that, F2L only needs R, U and L.') },
+  { id: 'block', name: 'Block building', tier: 2, title: L('Xây khối', 'Block building'), desc: L('Giải bằng cách xây các khối 1×2×3 hay 2×2×2 thay vì từng tầng. Đây là cốt lõi của Roux và Petrus.', 'Solve by building 1×2×3 or 2×2×2 blocks instead of layers. The heart of Roux and Petrus.'), link: '/learn/roux' },
+  { id: 'pseudo', name: 'Pseudo', tier: 2, title: L('Pseudo slotting', 'Pseudo slotting'), desc: L('Chèn cặp vào slot “sai” trong khi tầng dưới đang lệch, rồi chỉnh lại ở cuối. Mở ra nhiều cách giải ngắn hơn.', 'Insert pairs into the “wrong” slot while the bottom layer is offset, then fix it at the end. Opens up shorter solutions.') },
+  { id: 'cprecog', name: 'CP recog', tier: 3, title: L('Nhận hoán vị góc', 'Corner permutation recognition'), desc: L('Nhìn ra các góc đang hoán vị thế nào ngay lúc làm OLL. Cần cho OLLCP, COLL và ZBLL.', 'Spot how the corners are permuted while still doing OLL. Needed for OLLCP, COLL and ZBLL.') },
+  { id: 'eorecog', name: 'EO recog', tier: 3, title: L('Nhận hướng cạnh', 'Edge orientation recognition'), desc: L('Biết ngay cạnh nào “tốt”, cạnh nào “xấu” trên toàn khối trong lúc quan sát. Kỹ năng bắt buộc của ZZ.', 'Know which edges are “good” or “bad” across the whole cube during inspection. A must for ZZ.') },
+  { id: 'c2', name: 'C +2', tier: 3, title: L('Cross + 2', 'Cross + 2'), desc: L('Lên kế hoạch dấu thập và theo dõi luôn hai cặp F2L đầu tiên. Trình độ của những người giữ kỷ lục.', 'Plan the cross and track the first two F2L pairs. Record-holder territory.') },
+  { id: 'f2genf', name: "F 2GEN F'", tier: 3, title: L("F (2GEN) F'", "F (2GEN) F'"), desc: L("Một họ công thức OLL có dạng F, một chuỗi R/U, rồi F'. Ví dụ OLL 45 là F (R U R' U') F'.", "A family of OLL algorithms shaped like F, an R/U sequence, then F'. OLL 45 is F (R U R' U') F'."), alg: "F R U R' U' F'", mask: 'oll' },
+  { id: 'zb', name: 'ZB', tier: 4, title: L('Phương pháp ZB', 'The ZB method'), desc: L('ZBLS rồi ZBLL: tầng cuối chỉ cần một công thức, nhưng ZBLL có tới 493 trường hợp. Rất ít người học trọn.', 'ZBLS then ZBLL: the last layer in a single algorithm, but ZBLL alone has 493 cases. Very few people learn it all.') },
+  { id: 'ud', name: 'u/d', tier: 4, title: L('Nước rộng u và d', 'Wide u and d moves'), desc: L('Dùng u (hai tầng trên) hay d thay cho xoay cả khối cộng U, để không phải đổi cách cầm.', 'Use u (top two layers) or d instead of a cube rotation plus U, so you never change your grip.'), alg: "u R U' R' u'", mask: 'f2l' },
+  { id: 'edgecontrol', name: 'Edge Control', tier: 4, title: L('Kiểm soát cạnh', 'Edge control'), desc: L('Chèn cặp cuối theo cách định hướng được cạnh tầng trên, để tránh gặp những OLL xấu như ca một chấm.', 'Insert the last pair in a way that controls top-edge orientation, so you dodge the nasty dot OLLs.') },
+]
