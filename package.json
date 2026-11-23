@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build && node -e \"require('fs').copyFileSync('dist/index.html','dist/404.html')\"",
     "lint": "oxlint",
     "preview": "vite preview",
-    "verify": "node scripts/engine-smoke.ts && node scripts/validate-algs.ts && node scripts/validate-beginner.ts && node scripts/facelet-check.ts && node scripts/scan-check.ts && node scripts/scan-image-check.ts",
+    "verify": "node scripts/engine-smoke.ts && node scripts/validate-algs.ts && node scripts/validate-beginner.ts && node scripts/facelet-check.ts && node scripts/scan-check.ts && node scripts/scan-image-check.ts && node scripts/twisty-check.ts",
     "models": "\"C:/Program Files/Blender Foundation/Blender 5.3/blender.exe\" --background --factory-startup --python blender/build_models.py -- public/models --render"
   },
   "dependencies": {

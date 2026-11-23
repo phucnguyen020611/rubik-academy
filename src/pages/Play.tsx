@@ -10,6 +10,8 @@ import { useLang, L } from '../i18n'
 import { Button, Chip, IconButton } from '../ui/Button'
 import { Segmented, Slider, TextInput } from '../ui/Form'
 import { Toast } from '../ui/Overlay'
+import { PUZZLES } from '../puzzles/registry'
+import PlayVariant, { PuzzlePicker } from './PlayVariant'
 
 const FACE_KEYS = ['U', 'D', 'R', 'L', 'F', 'B']
 const fmt = (ms: number) => {
@@ -21,6 +23,12 @@ const fmt = (ms: number) => {
 type Mode = 'idle' | 'scrambling' | 'solving' | 'undo'
 
 export default function Play() {
+  const [params] = useSearchParams()
+  const entry = PUZZLES[params.get('p') ?? '']
+  return entry ? <PlayVariant entry={entry} /> : <CubePlay />
+}
+
+function CubePlay() {
   const { theme } = useTheme()
   const { t } = useLang()
   const [params, setParams] = useSearchParams()
@@ -222,6 +230,10 @@ export default function Play() {
         <div className="card card-pad">
           <div className="panel-row">
             <h3 style={{ margin: 0 }}>{t(L('Chơi tự do', 'Free play'))}</h3>
+            <PuzzlePicker value="cube" />
+          </div>
+          <div className="panel-row">
+            <span className="panel-label">{t(L('Cỡ khối', 'Size'))}</span>
             <Segmented size="sm" value={n} onChange={(v) => setParams({ n: String(v) })} ariaLabel={t(L('Cỡ khối', 'Cube size'))} options={[2, 3, 4, 5].map((s) => ({ value: s, label: `${s}×${s}` }))} />
           </div>
           <div className="action-grid">

@@ -365,7 +365,7 @@ function PhotoFrame({ url, w = 0.5, h = 0.6 }: { url: string; w?: number; h?: nu
 }
 
 /** Narrow floating shelves either side of the main unit, one puzzle per board. */
-const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode }[][] = [
+const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode; to?: string }[][] = [
   [
     { name: L('Megaminx', 'Megaminx'), note: L('12 mặt ngũ giác', '12 pentagon faces'), el: () => <Megaminx /> },
     { name: L('Skewb', 'Skewb'), note: L('Xoay quanh các góc', 'Turns around its corners'), el: () => <Skewb /> },
@@ -373,14 +373,14 @@ const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode }[][] = [
   ],
   [
     { name: L('Clock', 'Clock'), note: L('18 mặt đồng hồ, không xoay khối', '18 dials, no layers to turn'), el: () => <ClockPuzzle /> },
-    { name: L('Mirror cube', 'Mirror cube'), note: L('3×3 giải theo hình dạng', 'A 3×3 solved by shape'), el: () => <MirrorCube /> },
+    { name: L('Mirror cube', 'Mirror cube'), note: L('3×3 giải theo hình dạng · bấm để chơi', 'A 3×3 solved by shape · click to play'), el: () => <MirrorCube />, to: '/play?p=mirror' },
     { name: L('Square-1', 'Square-1'), note: L('Biến hình khi xoay', 'Changes shape as you turn'), el: () => <SquareOne /> },
   ],
 ]
 const TOWER_X = 3.35
 const TOWER_Y = [3.35, 2.3, 1.25]
 
-function VariantTowers({ p, k, t }: { p: Palette; k: number; t: (x: Tx) => string }) {
+function VariantTowers({ p, k, t, onPick }: { p: Palette; k: number; t: (x: Tx) => string; onPick: ShowroomProps['onPick'] }) {
   return (
     <>
       {VARIANTS.map((col, side) => (
@@ -399,7 +399,7 @@ function VariantTowers({ p, k, t }: { p: Palette; k: number; t: (x: Tx) => strin
               </mesh>
               <group position={[0, 0, 0.26]} rotation-y={(side ? -1 : 1) * 0.35}>
                 <Pop k={k} delay={0.4 + i * 0.12 + side * 0.06}>
-                  <Hoverable label={`${t(item.name)} · ${t(item.note)}`}>{item.el()}</Hoverable>
+                  <Hoverable label={`${t(item.name)} · ${t(item.note)}`} onClick={item.to ? () => onPick({ kind: 'link', to: item.to!, label: t(item.name) }) : undefined}>{item.el()}</Hoverable>
                 </Pop>
               </group>
             </group>
@@ -471,7 +471,7 @@ function CollectionWall({ p, k, t, onPick }: WallProps) {
         </>
       )}
     </Shelf>
-    <VariantTowers p={p} k={k} t={t} />
+    <VariantTowers p={p} k={k} t={t} onPick={onPick} />
     </>
   )
 }
