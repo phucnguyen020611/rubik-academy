@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { CubeObject } from '../cube/CubeCanvas'
 import { plasterTexture, posterTexture, signTexture, woodTexture } from './textures'
 import { useLang, L, type Lang, type Tx } from '../i18n'
+import { ClockPuzzle, Megaminx, MirrorCube, Pyraminx, Skewb, SpeedTimer, SquareOne } from './puzzles'
 
 const ROOM = 7
 const HEIGHT = 6.4
@@ -127,6 +128,7 @@ function Hoverable({ children, onClick, label, lift = 0.05 }: { children: ReactN
     ref.current.position.y = THREE.MathUtils.damp(ref.current.position.y, hover ? lift : 0, 8, dt)
   })
   useEffect(() => {
+    if (!onClick) return
     document.body.style.cursor = hover ? 'pointer' : ''
     return () => {
       document.body.style.cursor = ''
@@ -309,37 +311,53 @@ function Books({ colors, rotation = 0 }: { colors: string[]; rotation?: number }
   )
 }
 
-function Stackmat({ scale = 1 }: { scale?: number }) {
-  const lcd = signTexture('lcd', '0:09.87', { font: '700 150px "JetBrains Mono", monospace', color: '#ff5a4f', glow: 14, bg: '#1a0b0a', w: 768, h: 256 })
+/** Narrow floating shelves either side of the main unit, one puzzle per board. */
+const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode }[][] = [
+  [
+    { name: L('Megaminx', 'Megaminx'), note: L('12 mặt ngũ giác', '12 pentagon faces'), el: () => <Megaminx /> },
+    { name: L('Skewb', 'Skewb'), note: L('Xoay quanh các góc', 'Turns around its corners'), el: () => <Skewb /> },
+    { name: L('Pyraminx', 'Pyraminx'), note: L('Kim tự tháp 4 mặt', 'The four-sided pyramid'), el: () => <Pyraminx /> },
+  ],
+  [
+    { name: L('Clock', 'Clock'), note: L('18 mặt đồng hồ, không xoay khối', '18 dials, no layers to turn'), el: () => <ClockPuzzle /> },
+    { name: L('Mirror cube', 'Mirror cube'), note: L('3×3 giải theo hình dạng', 'A 3×3 solved by shape'), el: () => <MirrorCube /> },
+    { name: L('Square-1', 'Square-1'), note: L('Biến hình khi xoay', 'Changes shape as you turn'), el: () => <SquareOne /> },
+  ],
+]
+const TOWER_X = 3.35
+const TOWER_Y = [3.35, 2.3, 1.25]
+
+function VariantTowers({ p, k, t }: { p: Palette; k: number; t: (x: Tx) => string }) {
   return (
-    <group scale={scale}>
-      <mesh position-y={0.012} receiveShadow castShadow>
-        <boxGeometry args={[1.0, 0.02, 0.55]} />
-        <meshStandardMaterial color="#0f3d24" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0.06, 0]} castShadow>
-        <boxGeometry args={[0.62, 0.08, 0.26]} />
-        <meshStandardMaterial color="#202523" roughness={0.35} />
-      </mesh>
-      {[-0.23, 0.23].map((x) => (
-        <mesh key={x} position={[x, 0.102, 0.02]}>
-          <cylinderGeometry args={[0.07, 0.07, 0.01, 24]} />
-          <meshStandardMaterial color="#3a4440" roughness={0.6} />
-        </mesh>
+    <>
+      {VARIANTS.map((col, side) => (
+        <group key={side} position-x={(side ? 1 : -1) * TOWER_X}>
+          <pointLight position={[0, 4.3, 1.3]} intensity={p.dark ? 9 : 6} distance={4.5} decay={1.4} color={p.spotColor} />
+          {col.map((item, i) => (
+            <group key={i} position-y={TOWER_Y[i]}>
+              <mesh position={[0, -0.025, 0.24]} castShadow receiveShadow>
+                <boxGeometry args={[1.05, 0.05, 0.46]} />
+                <Wood repeat={1} />
+              </mesh>
+              {/* warm strip light under the front edge */}
+              <mesh position={[0, -0.052, 0.44]}>
+                <boxGeometry args={[0.96, 0.006, 0.012]} />
+                <meshBasicMaterial color={p.dark ? '#ffd9a0' : '#fff3df'} toneMapped={false} />
+              </mesh>
+              <group position={[0, 0, 0.26]} rotation-y={(side ? -1 : 1) * 0.35}>
+                <Pop k={k} delay={0.4 + i * 0.12 + side * 0.06}>
+                  <Hoverable label={`${t(item.name)} · ${t(item.note)}`}>{item.el()}</Hoverable>
+                </Pop>
+              </group>
+            </group>
+          ))}
+        </group>
       ))}
-      <mesh position={[0, 0.11, -0.08]} rotation-x={-0.5} castShadow>
-        <boxGeometry args={[0.3, 0.1, 0.02]} />
-        <meshStandardMaterial color="#121514" />
-      </mesh>
-      <mesh position={[0, 0.112, -0.069]} rotation-x={-0.5}>
-        <planeGeometry args={[0.27, 0.08]} />
-        <meshBasicMaterial map={lcd} toneMapped={false} />
-      </mesh>
-    </group>
+    </>
   )
 }
 
-function CollectionWall({ k, t, onPick }: WallProps) {
+function CollectionWall({ p, k, t, onPick }: WallProps) {
   const pick = (n: number) => onPick({ kind: 'cube', n, label: `${n}×${n}` })
   const tip = (n: number) => t(L(`${n}×${n} · bấm để chọn`, `${n}×${n} · click to choose`))
   const cube = (n: number, size: number, pos: [number, number, number], i: number, setup?: string, rot = 0, loopAlg?: string) => (
@@ -350,6 +368,7 @@ function CollectionWall({ k, t, onPick }: WallProps) {
     </group>
   )
   return (
+    <>
     <Shelf>
       {(cell) => (
         <>
@@ -382,9 +401,9 @@ function CollectionWall({ k, t, onPick }: WallProps) {
           </group>
           <group position={cell(2, 0)}>
             <Pop k={k} delay={0.9}>
-              <Hoverable onClick={() => onPick({ kind: 'link', to: '/timer', label: 'Timer' })} label={t(L('Bộ bấm giờ', 'Timer'))}>
-                <group position={[0, 0, 0.05]}>
-                  <Stackmat scale={0.95} />
+              <Hoverable onClick={() => onPick({ kind: 'link', to: '/timer', label: 'Timer' })} label={t(L('Đồng hồ bấm giờ', 'Speed timer'))}>
+                <group position={[0, 0, 0.08]}>
+                  <group scale={1.1}><SpeedTimer /></group>
                 </group>
               </Hoverable>
             </Pop>
@@ -392,6 +411,8 @@ function CollectionWall({ k, t, onPick }: WallProps) {
         </>
       )}
     </Shelf>
+    <VariantTowers p={p} k={k} t={t} />
+    </>
   )
 }
 
@@ -535,8 +556,14 @@ function ToolsWall({ p, k, lang, t, onPick }: WallProps) {
         )}
         <group position={[-0.2, 1.035, 0.05]}>
           <Pop k={k} delay={0.3}>
+            <mesh position-y={0.006} receiveShadow>
+              <boxGeometry args={[1.3, 0.012, 0.62]} />
+              <meshStandardMaterial color="#0f3d24" roughness={0.92} />
+            </mesh>
             <Hoverable onClick={() => onPick({ kind: 'link', to: '/timer', label: 'Timer' })} label={t(L('Mở bộ bấm giờ', 'Open the timer'))}>
-              <Stackmat />
+              <group position-y={0.012} scale={1.15}>
+                <SpeedTimer time="0:09.87" />
+              </group>
             </Hoverable>
           </Pop>
         </group>
