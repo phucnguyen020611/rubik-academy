@@ -31,6 +31,7 @@ export function PuzzlePicker({ value }: { value: string }) {
       options={[
         { value: 'cube', label: t(L('Khối vuông 2×2 – 5×5', 'Cube 2×2 – 5×5')), short: t(L('Khối vuông', 'Cube')) },
         ...PUZZLE_IDS.map((id) => ({ value: id, label: t(PUZZLES[id].name) })),
+        { value: 'clock', label: t(L('Clock', 'Clock')) },
       ]}
     />
   )

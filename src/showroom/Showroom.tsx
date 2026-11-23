@@ -372,7 +372,7 @@ const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode; to?: string }[][] = [
     { name: L('Pyraminx', 'Pyraminx'), note: L('Kim tự tháp 4 mặt · bấm để chơi', 'The four-sided pyramid · click to play'), el: () => <Pyraminx />, to: '/play?p=pyraminx' },
   ],
   [
-    { name: L('Clock', 'Clock'), note: L('18 mặt đồng hồ, không xoay khối', '18 dials, no layers to turn'), el: () => <ClockPuzzle /> },
+    { name: L('Clock', 'Clock'), note: L('18 mặt đồng hồ · bấm để chơi', '18 dials · click to play'), el: () => <ClockPuzzle />, to: '/play?p=clock' },
     { name: L('Mirror cube', 'Mirror cube'), note: L('3×3 giải theo hình dạng · bấm để chơi', 'A 3×3 solved by shape · click to play'), el: () => <MirrorCube />, to: '/play?p=mirror' },
     { name: L('Square-1', 'Square-1'), note: L('Biến hình khi xoay · bấm để chơi', 'Changes shape as you turn · click to play'), el: () => <SquareOne />, to: '/play?p=square1' },
   ],

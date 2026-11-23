@@ -1,5 +1,6 @@
 import { applyMoves, formatMoves, invertMoves, isSolved, moveLabel, parseTwisty, randomScramble, solvedState, turnPieces } from '../src/puzzles/twisty.ts'
 import { TWISTY_DEFS } from '../src/puzzles/defs.ts'
+import { applyClockMoves, clockScramble, formatClock, invertClockMove, isClockSolved, parseClock, solvedClock, wheelTurn } from '../src/puzzles/clock.ts'
 
 let failed = 0
 const chk = (name: string, ok: boolean) => {
@@ -97,6 +98,34 @@ chk('square-1: scrambles have 12 slices and every slice is legal', (() => {
   return true
 })())
 chk('square-1: / / is solved, / alone is not', isSolved(Q, qrun('/ /')) && !isSolved(Q, qrun('/')))
+
+{
+  const c0 = solvedClock()
+  const run = (alg: string) => applyClockMoves(c0, parseClock(alg)!)
+  const up = { UL: true, UR: false, DL: false, DR: true }
+  chk('clock: solved at start', isClockSolved(c0))
+  chk('clock: U1+ moves 6 front dials and 2 back corners', (() => {
+    const s = run('U1+')
+    return s.front.filter((v) => v).length === 6 && s.back.filter((v) => v).length === 2 && s.back[0] === -1 && s.back[2] === -1
+  })())
+  chk('clock: ALL12+ is solved, ALL1+ is not', isClockSolved(run('ALL12+')) && !isClockSolved(run('ALL1+')))
+  chk('clock: the same wheel seen from either side does the same thing', (() => {
+    const a = applyClockMoves(c0, [wheelTurn('front', up, 'UL', -1)])
+    const b = applyClockMoves(c0, [wheelTurn('back', up, 'UR', 1)])
+    return JSON.stringify(a) === JSON.stringify(b)
+  })())
+  chk('clock: a wheel whose pin is down turns the back', wheelTurn('front', up, 'UR', 1).side === 'back')
+  for (let i = 0; i < 10; i++) {
+    const sc = clockScramble()
+    const text = formatClock(sc)
+    const parsed = parseClock(text)
+    const s = applyClockMoves(c0, sc)
+    const ok = !!parsed && JSON.stringify(applyClockMoves(c0, parsed)) === JSON.stringify(s) && isClockSolved(applyClockMoves(s, [...sc].reverse().map(invertClockMove)))
+    if (i === 0) console.log('     clock scramble:', text)
+    chk(`clock: scramble ${i} parses back and undoes`, ok)
+  }
+  chk('clock: rejects junk', parseClock('UR3 Q') === null)
+}
 
 if (failed) {
   console.log(`${failed} check(s) failed`)

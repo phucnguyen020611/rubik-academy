@@ -12,6 +12,7 @@ import { Segmented, Slider, TextInput } from '../ui/Form'
 import { Toast } from '../ui/Overlay'
 import { PUZZLES } from '../puzzles/registry'
 import PlayVariant, { PuzzlePicker } from './PlayVariant'
+import PlayClock from './PlayClock'
 
 const FACE_KEYS = ['U', 'D', 'R', 'L', 'F', 'B']
 const fmt = (ms: number) => {
@@ -25,6 +26,7 @@ type Mode = 'idle' | 'scrambling' | 'solving' | 'undo'
 export default function Play() {
   const [params] = useSearchParams()
   const entry = PUZZLES[params.get('p') ?? '']
+  if (params.get('p') === 'clock') return <PlayClock />
   return entry ? <PlayVariant entry={entry} /> : <CubePlay />
 }
 

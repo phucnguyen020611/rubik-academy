@@ -620,3 +620,39 @@
 .play-panel > * {
   min-width: 0;
 }
+
+/* clock controls: one cell per corner, laid out like the puzzle */
+.clock-pad {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+.clock-pad-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0.35rem;
+}
+.clock-pad-cell .move-btn {
+  display: grid;
+  place-items: center;
+  height: 2.4rem;
+  color: var(--text);
+}
+.pin-btn {
+  height: 2.4rem;
+  border-radius: 7px;
+  border: 1px dashed var(--border-strong);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.pin-btn.up {
+  border-style: solid;
+  border-color: #e6b800;
+  background: #ffd21f;
+  color: #2a1f00;
+}
