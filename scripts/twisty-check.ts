@@ -1,4 +1,4 @@
-import { applyMoves, invertMoves, isSolved, moveLabel, parseTwisty, randomScramble, solvedState, turnPieces } from '../src/puzzles/twisty.ts'
+import { applyMoves, formatMoves, invertMoves, isSolved, moveLabel, parseTwisty, randomScramble, solvedState, turnPieces } from '../src/puzzles/twisty.ts'
 import { TWISTY_DEFS } from '../src/puzzles/defs.ts'
 
 let failed = 0
@@ -70,6 +70,33 @@ chk('megaminx: R++ prints and parses as the wide turn', moveLabel(G, { turn: 'Rw
 chk('megaminx: face doubles print as R2', moveLabel(G, { turn: 'R', amount: 2 }) === 'R2' && parseTwisty(G, "R2'")![0].amount === -2)
 chk("megaminx: R U R' U' not solved", !isSolved(G, grun("R U R' U'")))
 chk('megaminx: R++ then opposite DBL face back is a whole rotation', isSolved(G, grun("R++ DBL2'")))
+
+const Q = TWISTY_DEFS.square1
+const q0 = solvedState(Q)
+const qrun = (alg: string) => applyMoves(Q, q0, parseTwisty(Q, alg)!)
+const slash = { turn: '/', amount: 1 }
+chk('square-1: 18 pieces', Q.pieces.length === 18)
+chk('square-1: slice works on the solved cube', Q.legal!(q0, slash))
+chk('square-1: (1,0)/ and (0,-1)/ are legal from cube shape, (-1,0)/ is not', Q.legal!(qrun('(1,0)'), slash) && Q.legal!(qrun('(0,-1)'), slash) && !Q.legal!(qrun('(-1,0)'), slash))
+chk('square-1: slice is fine after (3,0) and (0,-3)', Q.legal!(qrun('(3,0)'), slash) && Q.legal!(qrun('(0,-3)'), slash))
+chk('square-1: (2,0)/ is blocked, (1,-1)/ is not', !Q.legal!(qrun('(2,0)'), slash) && Q.legal!(qrun('(1,-1)'), slash))
+chk('square-1: slice turns 6 top/bottom pieces and a middle half', turnPieces(Q, q0, '/').length === 9)
+chk('square-1: U turns the top 8 only', turnPieces(Q, q0, 'U').length === 8)
+chk('square-1: (1,0)/ (-3,3)/ round-trips through the formatter', formatMoves(Q, parseTwisty(Q, '(1,0)/ (-3,3)/')!) === '(1,0)/ (-3,3)/')
+chk('square-1: scrambles have 12 slices and every slice is legal', (() => {
+  for (let i = 0; i < 30; i++) {
+    let s = q0
+    let n = 0
+    for (const m of randomScramble(Q)) {
+      if (!Q.legal!(s, m)) return false
+      if (m.turn === '/') n++
+      s = applyMoves(Q, s, [m])
+    }
+    if (n !== 12) return false
+  }
+  return true
+})())
+chk('square-1: / / is solved, / alone is not', isSolved(Q, qrun('/ /')) && !isSolved(Q, qrun('/')))
 
 if (failed) {
   console.log(`${failed} check(s) failed`)

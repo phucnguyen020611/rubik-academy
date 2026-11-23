@@ -3,8 +3,8 @@ import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { L, type Tx } from '../i18n-core'
 import { COLORS } from '../cube/schemes'
-import { MEGA, MEGAMINX, MEGA_FACE_NAMES, MIRROR, MIRROR_BOUNDS, PYRAMINX, PYRA_EDGES, PYRA_ORDER, PYRA_VERTS, SKEWB, type MegaFace, type PyraVertex } from './defs'
-import { bodyGeometry, pieceMaterials, pieceObject, stickerGeometry, type Poly } from './geometry'
+import { MEGA, MEGAMINX, MEGA_FACE_NAMES, MIRROR, MIRROR_BOUNDS, PYRAMINX, PYRA_EDGES, PYRA_ORDER, PYRA_VERTS, SKEWB, SQ1_SPECS, SQ1_THIRD, SQUARE1, sqDir, type MegaFace, type PyraVertex } from './defs'
+import { bodyGeometry, pieceMaterials, pieceObject, prismGeometry, stickerGeometry, type Poly } from './geometry'
 import type { TwistyDef } from './twisty'
 
 export interface PuzzleEntry {
@@ -201,6 +201,47 @@ function megaCore() {
   return new THREE.Mesh(bodyGeometry(polys, ORIGIN, 1, 1), pieceMaterials().body)
 }
 
+// ------------------------------------------------------------------ square-1
+const SQ_H = 1.5
+const SQ_SIDE: Record<number, string> = { 0: COLORS.red, 90: COLORS.blue, 180: COLORS.orange, 270: COLORS.green }
+
+/** point on the square outline in direction `deg` (plan coordinates: x, z) */
+function sqPoint(deg: number) {
+  const [x, , z] = sqDir(deg)
+  const k = SQ_H / Math.max(Math.abs(x), Math.abs(z))
+  return new THREE.Vector2(x * k, z * k)
+}
+
+function buildSq1Piece(i: number) {
+  const p = SQ1_SPECS[i]
+  const t = SQ1_THIRD * SQ_H
+  const [y0, y1] = p.layer === 'U' ? [t, SQ_H] : p.layer === 'D' ? [-SQ_H, -t] : [-t, t]
+  // outline angles: wedge edges from the centre, plus any square corner inside the wedge
+  const angles = [p.centre - p.half]
+  for (let a = 45; a < 45 + 360 * 2; a += 90) {
+    const r = ((a - (p.centre - p.half)) % 360 + 360) % 360
+    if (r > 1e-6 && r < p.half * 2 - 1e-6) angles.push(p.centre - p.half + r)
+  }
+  angles.push(p.centre + p.half)
+  angles.sort((a, b) => a - b)
+  const rim = angles.map(sqPoint)
+  const plan = p.layer === 'M' ? rim : [new THREE.Vector2(), ...rim]
+  const inside = new THREE.Vector3(0, (y0 + y1) / 2, 0)
+  rim.reduce((a, q) => a.add(new THREE.Vector3(q.x, 0, q.y).multiplyScalar(1 / rim.length)), inside)
+  const polys: Poly[] = []
+  const v3 = (q: THREE.Vector2, y: number) => new THREE.Vector3(q.x, y, q.y)
+  if (p.layer !== 'M') {
+    const y = p.layer === 'U' ? y1 : y0
+    polys.push({ pts: plan.map((q) => v3(q, y)), color: p.layer === 'U' ? COLORS.white : COLORS.yellow })
+  }
+  for (let k = 0; k < rim.length - 1; k++) {
+    const mid = (angles[k] + angles[k + 1]) / 2
+    const side = (((Math.round(mid / 90) * 90) % 360) + 360) % 360
+    polys.push({ pts: [v3(rim[k], y0), v3(rim[k + 1], y0), v3(rim[k + 1], y1), v3(rim[k], y1)], color: SQ_SIDE[side] })
+  }
+  return pieceObject(stickerGeometry(polys, inside, 0.86, 0.012), prismGeometry(plan, y0, y1, 0.985))
+}
+
 const boundsCentre = new THREE.Vector3(...MIRROR_BOUNDS.map(([a, b]) => (a + b) / 2) as [number, number, number])
 
 const CUBE_KEYS: Record<string, string> = { r: 'R', l: 'L', u: 'U', d: 'D', f: 'F', b: 'B', m: 'M', e: 'E', s: 'S', x: 'x', y: 'y', z: 'z' }
@@ -267,6 +308,18 @@ export const PUZZLES: Record<string, PuzzleEntry> = {
     ],
     keys: { u: 'U', f: 'F', r: 'R', l: 'L', d: 'D', b: 'B' },
     keyHint: L('Phím U F R L D B, Shift = ngược', 'Keys U F R L D B, Shift = prime'),
+  },
+  square1: {
+    id: 'square1',
+    name: L('Square-1', 'Square-1'),
+    blurb: L('Xoay mặt trên, mặt dưới theo từng nấc 30°, rồi cắt đôi bằng nước /. Khối biến hình liên tục nên việc đầu tiên là đưa nó về lại dáng vuông.', 'Turn the top and bottom in 30° steps, then flip half the puzzle with /. It changes shape constantly, so step one is getting it back into a cube.'),
+    def: SQUARE1,
+    build: buildSq1Piece,
+    centre: new THREE.Vector3(),
+    size: 3.3,
+    pad: [['U', 'D', '/']],
+    keys: { u: 'U', d: 'D', '/': '/', s: '/' },
+    keyHint: L('Phím U D (Shift = ngược), / hoặc S để cắt', 'Keys U D (Shift = back), / or S to slice'),
   },
 }
 

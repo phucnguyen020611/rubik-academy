@@ -41,6 +41,14 @@ export interface TwistyDef {
   scramble?: (rnd: () => number) => TwistyMove[]
   /** extra whole tokens, e.g. "R++" for a Megaminx wide turn */
   tokens?: Record<string, TwistyMove>
+  /** false when the mechanism blocks this move in this state (Square-1 slices) */
+  legal?: (state: TwistyState, m: TwistyMove) => boolean
+  /** puzzle-specific move label, e.g. (3,0) */
+  label?: (m: TwistyMove) => string | null
+  /** puzzle-specific token, e.g. (3,-1) → two moves */
+  parseToken?: (tok: string) => TwistyMove[] | null
+  /** puzzle-specific way to print a whole sequence */
+  format?: (moves: TwistyMove[]) => string
 }
 
 export interface TwistyMove {
@@ -70,6 +78,8 @@ export function normaliseAmount(amount: number, order: number) {
 }
 
 export function moveLabel(def: TwistyDef, m: TwistyMove) {
+  const custom = def.label?.(m)
+  if (custom) return custom
   const order = def.turns[m.turn].order
   const a = normaliseAmount(m.amount, order)
   const wide = def.turns[m.turn].wideLabel
@@ -86,6 +96,11 @@ export function parseTwisty(def: TwistyDef, text: string): TwistyMove[] | null {
   const names = Object.keys(def.turns).sort((a, b) => b.length - a.length)
   for (const raw of text.trim().split(/\s+/).filter(Boolean)) {
     const tok = raw.replace(/’|′/g, "'")
+    const special = def.parseToken?.(tok)
+    if (special) {
+      out.push(...special)
+      continue
+    }
     const fixed = def.tokens?.[tok]
     if (fixed) {
       out.push({ ...fixed })
@@ -107,6 +122,10 @@ export function parseTwisty(def: TwistyDef, text: string): TwistyMove[] | null {
     out.push({ turn: name, amount })
   }
   return out
+}
+
+export function formatMoves(def: TwistyDef, moves: TwistyMove[]) {
+  return def.format ? def.format(moves) : moves.map((m) => moveLabel(def, m)).join(' ')
 }
 
 export function invertMoves(moves: TwistyMove[]): TwistyMove[] {

@@ -7,7 +7,7 @@ import { turnPieces } from './twisty'
 import { TwistyView } from './TwistyView'
 import type { PuzzleEntry } from './registry'
 
-function TwistyObject({ entry, speed, onReady, onMove, appear }: { entry: PuzzleEntry; speed: number; onReady?: (v: TwistyView) => void; onMove?: (label: string, solved: boolean) => void; appear?: number }) {
+function TwistyObject({ entry, speed, onReady, onMove, onBlocked, appear }: { entry: PuzzleEntry; speed: number; onReady?: (v: TwistyView) => void; onMove?: (label: string, solved: boolean) => void; onBlocked?: (label: string) => void; appear?: number }) {
   const view = useMemo(() => new TwistyView(entry.def, entry.build, entry.centre, entry.core?.()), [entry])
   const pop = useRef(0)
   useEffect(() => () => view.dispose(), [view])
@@ -22,6 +22,11 @@ function TwistyObject({ entry, speed, onReady, onMove, appear }: { entry: Puzzle
     view.listeners.add(onMove)
     return () => void view.listeners.delete(onMove)
   }, [view, onMove])
+  useEffect(() => {
+    if (!onBlocked) return
+    view.blocked.add(onBlocked)
+    return () => void view.blocked.delete(onBlocked)
+  }, [view, onBlocked])
   useEffect(() => {
     pop.current = 0
   }, [appear, view])
@@ -151,7 +156,7 @@ function Fit({ dist }: { dist: number }) {
   return null
 }
 
-export function TwistyStage({ entry, dark, speed, onReady, onMove, appear, className }: { entry: PuzzleEntry; dark?: boolean; speed: number; onReady?: (v: TwistyView) => void; onMove?: (label: string, solved: boolean) => void; appear?: number; className?: string }) {
+export function TwistyStage({ entry, dark, speed, onReady, onMove, onBlocked, appear, className }: { entry: PuzzleEntry; dark?: boolean; speed: number; onReady?: (v: TwistyView) => void; onMove?: (label: string, solved: boolean) => void; onBlocked?: (label: string) => void; appear?: number; className?: string }) {
   const dist = entry.size * 3.25
   return (
     <div className={className} style={{ touchAction: 'none' }}>
@@ -159,7 +164,7 @@ export function TwistyStage({ entry, dark, speed, onReady, onMove, appear, class
         <Fit dist={dist} />
         <Suspense fallback={null}>
           <StudioLights dark={dark} />
-          <TwistyObject key={entry.id} entry={entry} speed={speed} onReady={onReady} onMove={onMove} appear={appear} />
+          <TwistyObject key={entry.id} entry={entry} speed={speed} onReady={onReady} onMove={onMove} onBlocked={onBlocked} appear={appear} />
           <ContactShadows position={[0, -entry.size * 0.78, 0]} opacity={dark ? 0.7 : 0.45} scale={entry.size * 4} blur={2.6} far={entry.size * 1.5} />
         </Suspense>
         <OrbitControls makeDefault enablePan={false} enableDamping minDistance={entry.size * 1.6} maxDistance={entry.size * 5} />

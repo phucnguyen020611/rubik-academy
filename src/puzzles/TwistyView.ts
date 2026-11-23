@@ -40,6 +40,8 @@ export class TwistyView {
   /** pieces live here; its origin is the mechanism centre (the point every turn rotates around) */
   readonly content = new THREE.Group()
   readonly listeners = new Set<Listener>()
+  /** called when the mechanism refuses a move (Square-1 slice through a piece) */
+  readonly blocked = new Set<(label: string) => void>()
   state: TwistyState
   speed = 180
   private objs: THREE.Object3D[]
@@ -121,6 +123,15 @@ export class TwistyView {
   update(dt: number) {
     if (!this.anim && !this.drag && this.queue.length) {
       const job = this.queue.shift()!
+      if (this.def.legal && !this.def.legal(this.state, job.move)) {
+        // the rest of a typed sequence makes no sense after a refused move
+        const done = [job, ...this.queue].map((j) => j.done).filter(Boolean)
+        this.queue = []
+        const label = moveLabel(this.def, job.move)
+        this.blocked.forEach((b) => b(label))
+        done.forEach((d) => d!())
+        return
+      }
       const t = this.def.turns[job.move.turn]
       const steps = Math.abs(normaliseAmount(job.move.amount, t.order))
       this.anim = {
@@ -165,6 +176,10 @@ export class TwistyView {
   /** start following the pointer with one turn; returns false if the puzzle is busy */
   beginDrag(turn: string) {
     if (this.busy) return false
+    if (this.def.legal && !this.def.legal(this.state, { turn, amount: 1 })) {
+      this.blocked.forEach((b) => b(moveLabel(this.def, { turn, amount: 1 })))
+      return false
+    }
     const t = this.def.turns[turn]
     this.drag = { turn, pieces: turnPieces(this.def, this.state, turn), axis: new THREE.Vector3(...t.axis).normalize(), angle: 0 }
     return true

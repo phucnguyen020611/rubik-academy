@@ -4,7 +4,7 @@ import { Copy, Hand, Keyboard, Move3d, Play as PlayIcon, RotateCcw, Shuffle, Und
 import { PUZZLES, PUZZLE_IDS, type PuzzleEntry } from '../puzzles/registry'
 import { TwistyStage } from '../puzzles/TwistyCanvas'
 import type { TwistyView } from '../puzzles/TwistyView'
-import { invertMoves, moveLabel, parseTwisty, randomScramble } from '../puzzles/twisty'
+import { formatMoves, invertMoves, moveLabel, parseTwisty, randomScramble } from '../puzzles/twisty'
 import { useStored, useTheme } from '../theme'
 import { useLang, L } from '../i18n'
 import { Button, IconButton } from '../ui/Button'
@@ -99,6 +99,11 @@ export default function PlayVariant({ entry }: { entry: PuzzleEntry }) {
     }
   }, [])
 
+  const onBlocked = useCallback(() => {
+    mode.current = 'idle'
+    setToast(tRef.current(L('Chưa thẳng hàng nên chưa cắt được. Xoay mặt trên hoặc dưới cho khớp trước đã.', 'The cut isn’t lined up yet. Turn the top or bottom until it is.')))
+  }, [])
+
   const doMoves = useCallback((s: string) => {
     mode.current = 'idle'
     view.current?.run(s, true)
@@ -116,7 +121,7 @@ export default function PlayVariant({ entry }: { entry: PuzzleEntry }) {
       v.speed = prev
       mode.current = 'idle'
     })
-    setScrambled(moves.map((m) => moveLabel(def, m)).join(' '))
+    setScrambled(formatMoves(def, moves))
     setHistory([])
     setTimer(null)
   }
@@ -159,13 +164,13 @@ export default function PlayVariant({ entry }: { entry: PuzzleEntry }) {
 
   const amounts = (turn: string) => {
     const order = def.turns[turn].order
-    return order === 3 ? [1, -1] : [1, -1, 2]
+    return order === 2 ? [1] : order === 3 ? [1, -1] : order === 12 ? [1, -1, 3] : [1, -1, 2]
   }
 
   return (
     <div className="play">
       <div className="play-stage stage">
-        <TwistyStage entry={entry} dark={theme === 'dark'} speed={speed} onReady={onReady} onMove={onMove} appear={appear} />
+        <TwistyStage entry={entry} dark={theme === 'dark'} speed={speed} onReady={onReady} onMove={onMove} onBlocked={onBlocked} appear={appear} />
         <div className="play-hud">
           <div className={`play-timer ${timer?.end ? 'done' : ''}`}>{timer ? fmt(elapsed) : scrambled ? t(L('Sẵn sàng', 'Ready')) : '0.00'}</div>
           <div className="muted small">{t(L(`${history.length} nước`, `${history.length} moves`))}</div>

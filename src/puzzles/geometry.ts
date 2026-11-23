@@ -78,6 +78,27 @@ export function bodyGeometry(polys: Poly[], apex: THREE.Vector3, depth = 1, seam
   return finish(pos)
 }
 
+/** vertical prism of a floor-plan polygon between heights y0 and y1, shrunk a touch to leave seams */
+export function prismGeometry(plan: THREE.Vector2[], y0: number, y1: number, seam = 0.97) {
+  const c = plan.reduce((a, p) => a.add(p), new THREE.Vector2()).divideScalar(plan.length)
+  const pts = plan.map((p) => p.clone().sub(c).multiplyScalar(seam).add(c))
+  const g = (seam - 1) * (y1 - y0) * -0.5
+  const lo = y0 + g
+  const hi = y1 - g
+  const pos: number[] = []
+  const tri = (a: number[], b: number[], d: number[]) => pos.push(...a, ...b, ...d)
+  const at = (p: THREE.Vector2, y: number) => [p.x, y, p.y]
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i]
+    const b = pts[(i + 1) % pts.length]
+    tri(at(c, hi), at(a, hi), at(b, hi))
+    tri(at(c, lo), at(b, lo), at(a, lo))
+    tri(at(a, lo), at(b, lo), at(b, hi))
+    tri(at(a, lo), at(b, hi), at(a, hi))
+  }
+  return finish(pos)
+}
+
 export function pieceObject(stickers: THREE.BufferGeometry, body: THREE.BufferGeometry) {
   const g = new THREE.Group()
   g.add(new THREE.Mesh(body, pieceMaterials().body))

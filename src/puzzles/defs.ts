@@ -1,6 +1,7 @@
 /** Puzzle definitions for the twisty engine (no rendering here, so scripts can import them). */
 import { Quaternion, Vector3 } from 'three'
-import type { PieceDef, TurnDef, TwistyDef, TwistyMove, Vec } from './twisty.ts'
+import { applyMove, applyMoves, normaliseAmount, solvedState } from './twisty.ts'
+import type { PieceDef, TurnDef, TwistyDef, TwistyMove, TwistyState, Vec } from './twisty.ts'
 
 const ALL = -99
 
@@ -258,9 +259,122 @@ export const MEGAMINX: TwistyDef = (() => {
   }
 })()
 
+// ------------------------------------------------------------------ square-1
+/** a direction in the horizontal plane; angles grow anticlockwise seen from above (+y) */
+export const sqDir = (deg: number): Vec => [Math.cos((deg * Math.PI) / 180), 0, -Math.sin((deg * Math.PI) / 180)]
+/** the slice cuts along 75° ↔ 255° (so (1,0)/ is legal from cube shape, as in competition scrambles); "/" turns the right half */
+export const SQ1_CUT = 75
+export const SQ1_THIRD = 1 / 3
+
+export interface Sq1Spec {
+  layer: 'U' | 'D' | 'M'
+  /** centre angle of the piece's wedge (top/bottom), or the half's middle angle (M) */
+  centre: number
+  /** half the wedge angle: 15° for edges, 30° for corners, 90° for a middle half */
+  half: number
+}
+
+export const SQ1_SPECS: Sq1Spec[] = [
+  ...(['U', 'D'] as const).flatMap((layer) => [
+    ...[0, 90, 180, 270].map((centre) => ({ layer, centre, half: 15 })),
+    ...[45, 135, 225, 315].map((centre) => ({ layer, centre, half: 30 })),
+  ]),
+  { layer: 'M', centre: SQ1_CUT - 90, half: 90 },
+  { layer: 'M', centre: SQ1_CUT + 90, half: 90 },
+]
+
+const SQ1_SLASH = sqDir(SQ1_CUT - 90)
+
+function sq1Legal(state: TwistyState, m: TwistyMove) {
+  if (m.turn !== '/') return true
+  const cut = new Vector3(...sqDir(SQ1_CUT))
+  return SQ1_SPECS.every((p, i) => {
+    if (p.layer === 'M') return true
+    const mid = new Vector3(...sqDir(p.centre)).applyQuaternion(state[i])
+    mid.y = 0
+    mid.normalize()
+    // blocked if the cut line runs through the inside of this wedge
+    const off = (Math.acos(Math.min(1, Math.abs(mid.dot(cut)))) * 180) / Math.PI
+    return off >= p.half - 0.5
+  })
+}
+
+export const SQUARE1: TwistyDef = {
+  id: 'square1',
+  pieces: SQ1_SPECS.map((p) => {
+    if (p.layer === 'M') {
+      return { anchor: scale(sqDir(p.centre), 0.5), faces: [p.centre - 90, p.centre, p.centre + 90].map((a) => sqDir(Math.round(a / 90) * 90)) }
+    }
+    const y = (p.layer === 'U' ? 1 : -1) * (1 + SQ1_THIRD) / 2
+    const r = p.half === 15 ? 0.7 : 0.85
+    const [x, , z] = sqDir(p.centre)
+    const sides = p.half === 15 ? [sqDir(p.centre)] : [sqDir(p.centre - 45), sqDir(p.centre + 45)]
+    return { anchor: [x * r, y, z * r] as Vec, faces: [[0, p.layer === 'U' ? 1 : -1, 0] as Vec, ...sides] }
+  }),
+  turns: {
+    U: { axis: [0, 1, 0], order: 12, min: 0.1 },
+    D: { axis: [0, -1, 0], order: 12, min: 0.1 },
+    '/': { axis: SQ1_SLASH, order: 2, min: 0 },
+  },
+  scrambleTurns: ['U', 'D', '/'],
+  scrambleLength: 12,
+  legal: sq1Legal,
+  label: (m) => {
+    const a = normaliseAmount(m.amount, m.turn === '/' ? 2 : 12)
+    return m.turn === 'U' ? `(${a},0)` : m.turn === 'D' ? `(0,${a})` : '/'
+  },
+  parseToken: (tok) => {
+    const m = /^\((-?\d+),(-?\d+)\)(\/?)$/.exec(tok)
+    if (!m) return null
+    const out: TwistyMove[] = []
+    if (Number(m[1])) out.push({ turn: 'U', amount: Number(m[1]) })
+    if (Number(m[2])) out.push({ turn: 'D', amount: Number(m[2]) })
+    if (m[3]) out.push({ turn: '/', amount: 1 })
+    return out
+  },
+  format: (moves) => {
+    const parts: string[] = []
+    let u = 0
+    let d = 0
+    const flush = (slash: boolean) => {
+      if (u || d || !slash) parts.push(`(${normaliseAmount(u, 12)},${normaliseAmount(d, 12)})${slash ? '/' : ''}`)
+      else parts.push('/')
+      u = d = 0
+    }
+    for (const m of moves) {
+      if (m.turn === 'U') u += m.amount
+      else if (m.turn === 'D') d += m.amount
+      else flush(true)
+    }
+    if (u || d) flush(false)
+    return parts.join(' ')
+  },
+  // random legal scramble: twelve slices, each after a random top/bottom twist that lines the cut up
+  scramble: (rnd) => {
+    let s = solvedState(SQUARE1)
+    const out: TwistyMove[] = []
+    let slices = 0
+    while (slices < 12) {
+      const a = Math.floor(rnd() * 12) - 5
+      const b = Math.floor(rnd() * 12) - 5
+      if (slices && !a && !b) continue
+      const twist: TwistyMove[] = []
+      if (a) twist.push({ turn: 'U', amount: a })
+      if (b) twist.push({ turn: 'D', amount: b })
+      const t = applyMoves(SQUARE1, s, twist)
+      if (!sq1Legal(t, { turn: '/', amount: 1 })) continue
+      out.push(...twist, { turn: '/', amount: 1 })
+      s = applyMove(SQUARE1, t, { turn: '/', amount: 1 })
+      slices++
+    }
+    return out
+  },
+}
+
 export const TWISTY_DEFS: Record<string, TwistyDef> = {
   mirror: MIRROR,
   pyraminx: PYRAMINX,
   skewb: SKEWB,
   megaminx: MEGAMINX,
+  square1: SQUARE1,
 }

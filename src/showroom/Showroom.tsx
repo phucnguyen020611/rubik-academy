@@ -374,7 +374,7 @@ const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode; to?: string }[][] = [
   [
     { name: L('Clock', 'Clock'), note: L('18 mặt đồng hồ, không xoay khối', '18 dials, no layers to turn'), el: () => <ClockPuzzle /> },
     { name: L('Mirror cube', 'Mirror cube'), note: L('3×3 giải theo hình dạng · bấm để chơi', 'A 3×3 solved by shape · click to play'), el: () => <MirrorCube />, to: '/play?p=mirror' },
-    { name: L('Square-1', 'Square-1'), note: L('Biến hình khi xoay', 'Changes shape as you turn'), el: () => <SquareOne /> },
+    { name: L('Square-1', 'Square-1'), note: L('Biến hình khi xoay · bấm để chơi', 'Changes shape as you turn · click to play'), el: () => <SquareOne />, to: '/play?p=square1' },
   ],
 ]
 const TOWER_X = 3.35
