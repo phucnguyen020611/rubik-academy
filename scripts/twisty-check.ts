@@ -53,6 +53,24 @@ chk("skewb: R then opposite corner UFL' is a whole-puzzle rotation", isSolved(S,
 chk("skewb: R U' is not solved", !isSolved(S, krun("R U'")))
 chk('skewb: UFR parses before U', parseTwisty(S, "UFR' U")?.[0].turn === 'UFR')
 
+const G = TWISTY_DEFS.megaminx
+const g0 = solvedState(G)
+const grun = (alg: string) => applyMoves(G, g0, parseTwisty(G, alg)!)
+const faceNames = ['U', 'F', 'R', 'BR', 'BL', 'L', 'DR', 'DBR', 'B', 'DBL', 'DL', 'D']
+chk('megaminx: 62 pieces, 132 stickers', G.pieces.length === 62 && G.pieces.reduce((a, p) => a + p.faces.length, 0) === 132)
+chk('megaminx: every face turn moves 11 pieces', faceNames.every((f) => turnPieces(G, g0, f).length === 11))
+chk('megaminx: wide turns move all but one face', turnPieces(G, g0, 'Rw').length === 51 && turnPieces(G, g0, 'Dw').length === 51)
+chk('megaminx: U is on top', Math.abs(G.turns.U.axis[1] - 1) < 1e-9)
+chk('megaminx: F faces the viewer', Math.abs(G.turns.F.axis[0]) < 1e-9 && G.turns.F.axis[2] > 0.8)
+chk('megaminx: D++ leaves the U layer alone', (() => {
+  const s = grun('D++')
+  return turnPieces(G, g0, 'U').every((i) => s[i].equals(g0[i]))
+})())
+chk('megaminx: R++ prints and parses as the wide turn', moveLabel(G, { turn: 'Rw', amount: 2 }) === 'R++' && parseTwisty(G, 'R++')![0].turn === 'Rw')
+chk('megaminx: face doubles print as R2', moveLabel(G, { turn: 'R', amount: 2 }) === 'R2' && parseTwisty(G, "R2'")![0].amount === -2)
+chk("megaminx: R U R' U' not solved", !isSolved(G, grun("R U R' U'")))
+chk('megaminx: R++ then opposite DBL face back is a whole rotation', isSolved(G, grun("R++ DBL2'")))
+
 if (failed) {
   console.log(`${failed} check(s) failed`)
   process.exit(1)

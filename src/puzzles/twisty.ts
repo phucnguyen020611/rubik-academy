@@ -18,6 +18,8 @@ export interface TurnDef {
   /** pieces whose anchor·axis lies in (min, max] are turned */
   min: number
   max?: number
+  /** competition name for this turn's double moves (Megaminx wide turns print as R++ / D--) */
+  wideLabel?: string
 }
 
 export interface PieceDef {
@@ -35,6 +37,10 @@ export interface TwistyDef {
   scrambleLength: number
   /** turns given a random 0 / +1 / -1 at the end of a scramble (Pyraminx tips) */
   scrambleTips?: string[]
+  /** puzzle-specific scramble (replaces the random-move one) */
+  scramble?: (rnd: () => number) => TwistyMove[]
+  /** extra whole tokens, e.g. "R++" for a Megaminx wide turn */
+  tokens?: Record<string, TwistyMove>
 }
 
 export interface TwistyMove {
@@ -66,10 +72,11 @@ export function normaliseAmount(amount: number, order: number) {
 export function moveLabel(def: TwistyDef, m: TwistyMove) {
   const order = def.turns[m.turn].order
   const a = normaliseAmount(m.amount, order)
+  const wide = def.turns[m.turn].wideLabel
+  if (wide && Math.abs(a) === 2) return `${wide}${a > 0 ? '++' : '--'}`
   if (a === 1) return m.turn
   if (a === -1) return `${m.turn}'`
   if (order === 4 && Math.abs(a) === 2) return `${m.turn}2`
-  if (order === 5) return `${m.turn}${a > 0 ? '++' : '--'}`
   return `${m.turn}${Math.abs(a)}${a < 0 ? "'" : ''}`
 }
 
@@ -77,10 +84,16 @@ export function moveLabel(def: TwistyDef, m: TwistyMove) {
 export function parseTwisty(def: TwistyDef, text: string): TwistyMove[] | null {
   const out: TwistyMove[] = []
   const names = Object.keys(def.turns).sort((a, b) => b.length - a.length)
-  for (const tok of text.trim().split(/\s+/).filter(Boolean)) {
+  for (const raw of text.trim().split(/\s+/).filter(Boolean)) {
+    const tok = raw.replace(/’|′/g, "'")
+    const fixed = def.tokens?.[tok]
+    if (fixed) {
+      out.push({ ...fixed })
+      continue
+    }
     const name = names.find((n) => tok.startsWith(n))
     if (!name) return null
-    const rest = tok.slice(name.length).replace(/’|′/g, "'")
+    const rest = tok.slice(name.length)
     let amount: number
     if (rest === '') amount = 1
     else if (rest === "'") amount = -1
@@ -151,6 +164,7 @@ export function isSolved(def: TwistyDef, state: TwistyState) {
 
 /** random-move scramble that never turns the same axis twice in a row */
 export function randomScramble(def: TwistyDef, rnd: () => number = Math.random): TwistyMove[] {
+  if (def.scramble) return def.scramble(rnd)
   const out: TwistyMove[] = []
   let lastAxis: Vector3 | null = null
   while (out.length < def.scrambleLength) {

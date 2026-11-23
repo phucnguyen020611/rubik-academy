@@ -159,7 +159,7 @@ export default function PlayVariant({ entry }: { entry: PuzzleEntry }) {
 
   const amounts = (turn: string) => {
     const order = def.turns[turn].order
-    return order === 4 ? [1, -1, 2] : order === 5 ? [2, -2] : [1, -1]
+    return order === 3 ? [1, -1] : [1, -1, 2]
   }
 
   return (

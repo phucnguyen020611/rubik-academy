@@ -367,7 +367,7 @@ function PhotoFrame({ url, w = 0.5, h = 0.6 }: { url: string; w?: number; h?: nu
 /** Narrow floating shelves either side of the main unit, one puzzle per board. */
 const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode; to?: string }[][] = [
   [
-    { name: L('Megaminx', 'Megaminx'), note: L('12 mặt ngũ giác', '12 pentagon faces'), el: () => <Megaminx /> },
+    { name: L('Megaminx', 'Megaminx'), note: L('12 mặt ngũ giác · bấm để chơi', '12 pentagon faces · click to play'), el: () => <Megaminx />, to: '/play?p=megaminx' },
     { name: L('Skewb', 'Skewb'), note: L('Xoay quanh các góc · bấm để chơi', 'Turns around its corners · click to play'), el: () => <Skewb />, to: '/play?p=skewb' },
     { name: L('Pyraminx', 'Pyraminx'), note: L('Kim tự tháp 4 mặt · bấm để chơi', 'The four-sided pyramid · click to play'), el: () => <Pyraminx />, to: '/play?p=pyraminx' },
   ],

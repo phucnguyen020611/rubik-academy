@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { L, type Tx } from '../i18n-core'
 import { COLORS } from '../cube/schemes'
-import { MIRROR, MIRROR_BOUNDS, PYRAMINX, PYRA_EDGES, PYRA_ORDER, PYRA_VERTS, SKEWB, type PyraVertex } from './defs'
+import { MEGA, MEGAMINX, MEGA_FACE_NAMES, MIRROR, MIRROR_BOUNDS, PYRAMINX, PYRA_EDGES, PYRA_ORDER, PYRA_VERTS, SKEWB, type MegaFace, type PyraVertex } from './defs'
 import { bodyGeometry, pieceMaterials, pieceObject, stickerGeometry, type Poly } from './geometry'
 import type { TwistyDef } from './twisty'
 
@@ -138,6 +138,69 @@ function buildSkewbPiece(i: number) {
   return pieceObject(stickerGeometry(polys, ORIGIN, 0.82, 0.012), bodyGeometry(polys, ORIGIN, 1, 0.985))
 }
 
+// ------------------------------------------------------------------ megaminx
+const MEGA_R = 1.7
+const MEGA_COLOURS: Record<MegaFace, string> = {
+  U: '#f5f6f1',
+  F: '#00a35c',
+  R: '#d7263d',
+  BR: '#0a5bd6',
+  BL: '#ffd60a',
+  L: '#7b3fa0',
+  DR: '#ff8fb8',
+  DBR: '#86d24a',
+  B: '#ff7a00',
+  DBL: '#5ec8f2',
+  DL: '#fff1a8',
+  D: '#a9a39a',
+}
+
+/** each face is a centre pentagon, five edge trapezoids and five corner quads */
+const megaPolys = (() => {
+  const { verts, faceN, faceVerts, edges, edgeKey, inradius } = MEGA
+  const edgeIndex = new Map(edges.map(([a, b], i) => [edgeKey(a, b), i]))
+  const byPiece: Poly[][] = MEGAMINX.pieces.map(() => [])
+  const S = 0.46
+  // where the line through q (direction d) crosses the segment a→b
+  const hit = (q: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3) => {
+    const e = b.clone().sub(a)
+    const aq = a.clone().sub(q)
+    const dd = d.dot(d)
+    const de = d.dot(e)
+    const ee = e.dot(e)
+    return a.clone().addScaledVector(e, (dd * e.dot(aq) - de * d.dot(aq)) / (de * de - dd * ee))
+  }
+  MEGA_FACE_NAMES.forEach((f, fi) => {
+    const color = MEGA_COLOURS[f]
+    const ids = faceVerts[f]
+    const V = ids.map((i) => verts[i].clone().multiplyScalar(MEGA_R))
+    const C = faceN[f].clone().multiplyScalar(inradius * MEGA_R)
+    const Q = V.map((p) => C.clone().lerp(p, S))
+    byPiece[fi].push({ pts: Q, color })
+    for (let i = 0; i < 5; i++) {
+      const prev = (i + 4) % 5
+      const next = (i + 1) % 5
+      const X = hit(Q[i], V[i].clone().sub(V[prev]), V[i], V[next])
+      const Y = hit(Q[i], V[next].clone().sub(V[i]), V[prev], V[i])
+      byPiece[12 + ids[i]].push({ pts: [V[i], X, Q[i], Y], color })
+      const X2 = hit(Q[next], V[(i + 2) % 5].clone().sub(V[next]), V[i], V[next])
+      byPiece[32 + edgeIndex.get(edgeKey(ids[i], ids[next]))!].push({ pts: [X, X2, Q[next], Q[i]], color })
+    }
+  })
+  return byPiece
+})()
+
+function buildMegaPiece(i: number) {
+  const polys = megaPolys[i]
+  return pieceObject(stickerGeometry(polys, ORIGIN, 0.86, 0.01), bodyGeometry(polys, ORIGIN, 0.3))
+}
+
+function megaCore() {
+  const { verts, faceVerts } = MEGA
+  const polys: Poly[] = MEGA_FACE_NAMES.map((f) => ({ pts: faceVerts[f].map((i) => verts[i].clone().multiplyScalar(MEGA_R * 0.86)), color: '#000' }))
+  return new THREE.Mesh(bodyGeometry(polys, ORIGIN, 1, 1), pieceMaterials().body)
+}
+
 const boundsCentre = new THREE.Vector3(...MIRROR_BOUNDS.map(([a, b]) => (a + b) / 2) as [number, number, number])
 
 const CUBE_KEYS: Record<string, string> = { r: 'R', l: 'L', u: 'U', d: 'D', f: 'F', b: 'B', m: 'M', e: 'E', s: 'S', x: 'x', y: 'y', z: 'z' }
@@ -188,6 +251,22 @@ export const PUZZLES: Record<string, PuzzleEntry> = {
     ],
     keys: { r: 'R', u: 'U', l: 'L', b: 'B', x: 'x', y: 'y', z: 'z' },
     keyHint: L('Phím R U L B, Shift = ngược', 'Keys R U L B, Shift = prime'),
+  },
+  megaminx: {
+    id: 'megaminx',
+    name: L('Megaminx', 'Megaminx'),
+    blurb: L('Mười hai mặt ngũ giác, mỗi lần xoay một phần năm vòng. Cách giải khá giống 3×3, chỉ là nhiều mảnh hơn.', 'Twelve pentagon faces, each turning a fifth of a turn. Solving it feels a lot like a 3×3, just with more pieces.'),
+    def: MEGAMINX,
+    build: buildMegaPiece,
+    core: megaCore,
+    centre: new THREE.Vector3(),
+    size: 3.3,
+    pad: [
+      ['U', 'F', 'R', 'L', 'BR', 'BL'],
+      ['D', 'DR', 'DL', 'DBR', 'DBL', 'B'],
+    ],
+    keys: { u: 'U', f: 'F', r: 'R', l: 'L', d: 'D', b: 'B' },
+    keyHint: L('Phím U F R L D B, Shift = ngược', 'Keys U F R L D B, Shift = prime'),
   },
 }
 

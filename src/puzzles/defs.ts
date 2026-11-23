@@ -1,5 +1,6 @@
 /** Puzzle definitions for the twisty engine (no rendering here, so scripts can import them). */
-import type { PieceDef, TurnDef, TwistyDef, Vec } from './twisty.ts'
+import { Quaternion, Vector3 } from 'three'
+import type { PieceDef, TurnDef, TwistyDef, TwistyMove, Vec } from './twisty.ts'
 
 const ALL = -99
 
@@ -133,8 +134,133 @@ export const SKEWB: TwistyDef = {
   scrambleLength: 11,
 }
 
+// ------------------------------------------------------------------ megaminx
+const PHI = (1 + Math.sqrt(5)) / 2
+
+/** face names: top, upper ring (front first, clockwise from above), lower ring, bottom */
+export const MEGA_FACE_NAMES = ['U', 'F', 'R', 'BR', 'BL', 'L', 'DR', 'DBR', 'B', 'DBL', 'DL', 'D'] as const
+export type MegaFace = (typeof MEGA_FACE_NAMES)[number]
+
+/** Dodecahedron (circumradius 1) turned so one face is on top and another faces the viewer. */
+export const MEGA = (() => {
+  const verts: Vector3[] = []
+  for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) verts.push(new Vector3(x, y, z))
+  for (const a of [-1, 1])
+    for (const b of [-1, 1]) verts.push(new Vector3(0, a / PHI, b * PHI), new Vector3(a / PHI, b * PHI, 0), new Vector3(a * PHI, 0, b / PHI))
+  const normals: Vector3[] = []
+  for (const a of [-1, 1]) for (const b of [-1, 1]) normals.push(new Vector3(a, 0, b * PHI), new Vector3(0, a * PHI, b), new Vector3(a * PHI, b, 0))
+  verts.forEach((v) => v.normalize())
+  normals.forEach((n) => n.normalize())
+  // put normals[k] on top, then spin about y so the most forward upper face looks straight at +z
+  const up = normals.find((n) => n.y > 0.8 && n.z > 0)!
+  const q = new Quaternion().setFromUnitVectors(up, new Vector3(0, 1, 0))
+  const rotate = (v: Vector3) => v.applyQuaternion(q)
+  verts.forEach(rotate)
+  normals.forEach(rotate)
+  const front = normals.filter((n) => n.y > 0.2 && n.y < 0.8).sort((a, b) => b.z - a.z)[0]
+  const spin = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.atan2(front.x, front.z))
+  verts.forEach((v) => v.applyQuaternion(spin))
+  normals.forEach((n) => n.applyQuaternion(spin))
+  // name the faces: top, upper ring by azimuth (front, then clockwise seen from above), lower ring, bottom
+  const az = (n: Vector3) => {
+    const a = Math.atan2(n.x, n.z)
+    return a < -1e-6 ? a + Math.PI * 2 : a
+  }
+  const top = normals.find((n) => n.y > 0.99)!
+  const bottom = normals.find((n) => n.y < -0.99)!
+  const upper = normals.filter((n) => n.y > 0.2 && n.y < 0.99).sort((a, b) => az(a) - az(b))
+  const lower = normals.filter((n) => n.y < -0.2 && n.y > -0.99).sort((a, b) => az(a) - az(b))
+  // upper ring: F (az 0), R, BR, BL, L going clockwise from above = increasing azimuth towards +x
+  const faceN: Record<MegaFace, Vector3> = {
+    U: top,
+    F: upper[0],
+    R: upper[1],
+    BR: upper[2],
+    BL: upper[3],
+    L: upper[4],
+    DR: lower[0],
+    DBR: lower[1],
+    B: lower[2],
+    DBL: lower[3],
+    DL: lower[4],
+    D: bottom,
+  }
+  const inradius = verts.reduce((m, v) => Math.max(m, v.dot(top)), 0)
+  // each face's five corners, in order around the face
+  const faceVerts = {} as Record<MegaFace, number[]>
+  for (const f of MEGA_FACE_NAMES) {
+    const n = faceN[f]
+    const idx = verts.map((v, i) => [v.dot(n), i] as const).sort((a, b) => b[0] - a[0]).slice(0, 5).map(([, i]) => i)
+    const c = n.clone().multiplyScalar(inradius)
+    const u = verts[idx[0]].clone().sub(c).normalize()
+    const w = n.clone().cross(u)
+    idx.sort((a, b) => Math.atan2(verts[a].clone().sub(c).dot(w), verts[a].clone().sub(c).dot(u)) - Math.atan2(verts[b].clone().sub(c).dot(w), verts[b].clone().sub(c).dot(u)))
+    faceVerts[f] = idx
+  }
+  const edgeKey = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`)
+  const edges: [number, number][] = []
+  const seen = new Set<string>()
+  for (const f of MEGA_FACE_NAMES) {
+    const vs = faceVerts[f]
+    vs.forEach((a, i) => {
+      const b = vs[(i + 1) % 5]
+      if (!seen.has(edgeKey(a, b))) {
+        seen.add(edgeKey(a, b))
+        edges.push([a, b])
+      }
+    })
+  }
+  const facesOfVert = (i: number) => MEGA_FACE_NAMES.filter((f) => faceVerts[f].includes(i))
+  return { verts, faceN, faceVerts, edges, edgeKey, inradius, facesOfVert }
+})()
+
+const tv = (v: Vector3): Vec => [v.x, v.y, v.z]
+
+/** piece order: 12 centres (face order), 20 corners (vertex order), 30 edges */
+export const MEGAMINX: TwistyDef = (() => {
+  const { verts, faceN, edges, inradius, facesOfVert } = MEGA
+  const pieces: PieceDef[] = [
+    ...MEGA_FACE_NAMES.map((f) => ({ anchor: tv(faceN[f].clone().multiplyScalar(inradius)), faces: [tv(faceN[f])] })),
+    ...verts.map((v, i) => ({ anchor: tv(v), faces: facesOfVert(i).map((f) => tv(faceN[f])) })),
+    ...edges.map(([a, b]) => ({
+      anchor: tv(verts[a].clone().add(verts[b]).multiplyScalar(0.5)),
+      faces: facesOfVert(a)
+        .filter((f) => facesOfVert(b).includes(f))
+        .map((f) => tv(faceN[f])),
+    })),
+  ]
+  const layer = inradius * 0.9
+  const turns: Record<string, TurnDef> = Object.fromEntries(MEGA_FACE_NAMES.map((f) => [f, { axis: tv(faceN[f]), order: 5, min: layer }]))
+  // competition scrambles turn everything except one face: R++ keeps DBL still, D++ keeps U still
+  turns.Rw = { axis: tv(faceN.R), order: 5, min: -layer, wideLabel: 'R' }
+  turns.Dw = { axis: tv(faceN.D), order: 5, min: -layer, wideLabel: 'D' }
+  return {
+    id: 'megaminx',
+    pieces,
+    turns,
+    scrambleTurns: [...MEGA_FACE_NAMES],
+    scrambleLength: 70,
+    tokens: {
+      'R++': { turn: 'Rw', amount: 2 },
+      'R--': { turn: 'Rw', amount: -2 },
+      'D++': { turn: 'Dw', amount: 2 },
+      'D--': { turn: 'Dw', amount: -2 },
+    },
+    // 7 lines of ten R±± / D±± moves, each line ending in U or U'
+    scramble: (rnd) => {
+      const out: TwistyMove[] = []
+      for (let line = 0; line < 7; line++) {
+        for (let i = 0; i < 10; i++) out.push({ turn: i % 2 ? 'Dw' : 'Rw', amount: rnd() < 0.5 ? 2 : -2 })
+        out.push({ turn: 'U', amount: rnd() < 0.5 ? 1 : -1 })
+      }
+      return out
+    },
+  }
+})()
+
 export const TWISTY_DEFS: Record<string, TwistyDef> = {
   mirror: MIRROR,
   pyraminx: PYRAMINX,
   skewb: SKEWB,
+  megaminx: MEGAMINX,
 }
