@@ -37,7 +37,7 @@ A bilingual (Vietnamese / English) web app with a walk-around 3D showroom, a fre
 
 | | |
 | --- | --- |
-| **3D showroom** | The landing page is a room with four walls you can turn between: a shelf of 2×2 to 5×5 cubes, a study corner, a free-play pedestal and a practice desk. Cubes assemble themselves piece by piece as you arrive. |
+| **3D showroom** | The landing page is a room with four walls you can turn between: a shelf of 2×2 to 5×5 cubes flanked by a Megaminx, Pyraminx, Skewb, Square-1, Mirror cube and Clock, a study corner, a free-play pedestal and a practice desk with a detailed speed-stack timer. Cubes assemble themselves piece by piece as you arrive. |
 | **Free play** | Drag on the cube to turn layers, drag outside to orbit. Move pad for U, R, F, M, x, r and friends, keyboard shortcuts, scramble, undo, solve timer, algorithm runner and a one-click solver for 3×3. |
 | **Lessons** | Notation, an 8-step beginner method, 2-Look OLL/PLL, CFOP and Roux. Every step has a 3D player you can step through, slow down and orbit; pieces that do not matter yet are greyed out. |
 | **Algorithm library** | All 41 F2L, 57 OLL and 21 PLL cases with filters, search, alternatives and “learned” tracking. Every diagram is generated from its own algorithm, so pictures and moves always agree. |
@@ -45,6 +45,7 @@ A bilingual (Vietnamese / English) web app with a walk-around 3D showroom, a fre
 | **Timer** | Hold-and-release timing, optional 15 s inspection with +2/DNF, Ao5, Ao12, mean, CSV export. |
 | **Trainer** | Recognition and recall drills for PLL, OLL, 2-Look and F2L with random AUF; cases you miss come back more often. |
 | **Camera scanner** | Show the six faces to your camera and the app reads the colours, checks the cube is solvable, lets you fix any sticker and shows a solution on a 3D copy of *your* cube. Everything runs on your device; no images leave the browser. |
+| **About** | The story behind the project: two brothers who love the cube, and why the site was built. |
 | **Polish** | Light and dark themes in a four-leaf-clover palette, Vietnamese and English, a hand-built UI kit, responsive down to 360 px. |
 
 ## Tech stack
