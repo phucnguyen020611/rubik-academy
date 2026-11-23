@@ -33,6 +33,8 @@ export interface TwistyDef {
   /** turns a random scramble is drawn from */
   scrambleTurns: string[]
   scrambleLength: number
+  /** turns given a random 0 / +1 / -1 at the end of a scramble (Pyraminx tips) */
+  scrambleTips?: string[]
 }
 
 export interface TwistyMove {
@@ -163,6 +165,10 @@ export function randomScramble(def: TwistyDef, rnd: () => number = Math.random):
     }
     out.push({ turn, amount: choices[Math.floor(rnd() * choices.length)] })
     lastAxis = axis
+  }
+  for (const tip of def.scrambleTips ?? []) {
+    const r = Math.floor(rnd() * 3)
+    if (r) out.push({ turn: tip, amount: r === 1 ? 1 : -1 })
   }
   return out
 }

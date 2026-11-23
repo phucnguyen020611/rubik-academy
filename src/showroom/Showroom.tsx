@@ -368,8 +368,8 @@ function PhotoFrame({ url, w = 0.5, h = 0.6 }: { url: string; w?: number; h?: nu
 const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode; to?: string }[][] = [
   [
     { name: L('Megaminx', 'Megaminx'), note: L('12 mặt ngũ giác', '12 pentagon faces'), el: () => <Megaminx /> },
-    { name: L('Skewb', 'Skewb'), note: L('Xoay quanh các góc', 'Turns around its corners'), el: () => <Skewb /> },
-    { name: L('Pyraminx', 'Pyraminx'), note: L('Kim tự tháp 4 mặt', 'The four-sided pyramid'), el: () => <Pyraminx /> },
+    { name: L('Skewb', 'Skewb'), note: L('Xoay quanh các góc · bấm để chơi', 'Turns around its corners · click to play'), el: () => <Skewb />, to: '/play?p=skewb' },
+    { name: L('Pyraminx', 'Pyraminx'), note: L('Kim tự tháp 4 mặt · bấm để chơi', 'The four-sided pyramid · click to play'), el: () => <Pyraminx />, to: '/play?p=pyraminx' },
   ],
   [
     { name: L('Clock', 'Clock'), note: L('18 mặt đồng hồ, không xoay khối', '18 dials, no layers to turn'), el: () => <ClockPuzzle /> },

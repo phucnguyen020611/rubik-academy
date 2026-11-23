@@ -35,6 +35,24 @@ chk("mirror: (R U R' U')6", isSolved(M, run("R U R' U' R U R' U' R U R' U' R U R
 chk("mirror: x = R M' L'", isSolved(M, applyMoves(M, run("R M' L'"), parseTwisty(M, "x'")!)))
 chk('mirror: superflip-ish not solved', !isSolved(M, run('M2 E2 S2')))
 
+const P = TWISTY_DEFS.pyraminx
+const p0 = solvedState(P)
+const prun = (alg: string) => applyMoves(P, p0, parseTwisty(P, alg)!)
+chk('pyraminx: 14 pieces, 36 stickers', P.pieces.length === 14 && P.pieces.reduce((a, p) => a + p.faces.length, 0) === 36)
+chk('pyraminx: tip turns move one piece', ['u', 'l', 'r', 'b'].every((t) => turnPieces(P, p0, t).length === 1))
+chk('pyraminx: layer turns move tip, centre and 3 edges', ['U', 'L', 'R', 'B'].every((t) => turnPieces(P, p0, t).length === 5))
+chk("pyraminx: R U R' U' is not solved", !isSolved(P, prun("R U R' U'")))
+chk('pyraminx: tips alone scramble only tips', !isSolved(P, prun('u')) && isSolved(P, prun("u u'")))
+
+const S = TWISTY_DEFS.skewb
+const k0 = solvedState(S)
+const krun = (alg: string) => applyMoves(S, k0, parseTwisty(S, alg)!)
+chk('skewb: 14 pieces, 30 stickers', S.pieces.length === 14 && S.pieces.reduce((a, p) => a + p.faces.length, 0) === 30)
+chk('skewb: every corner turn moves half the puzzle', ['R', 'U', 'L', 'B', 'UFR', 'UFL', 'UBR', 'DFR'].every((t) => turnPieces(S, k0, t).length === 7))
+chk("skewb: R then opposite corner UFL' is a whole-puzzle rotation", isSolved(S, krun("R UFL'")))
+chk("skewb: R U' is not solved", !isSolved(S, krun("R U'")))
+chk('skewb: UFR parses before U', parseTwisty(S, "UFR' U")?.[0].turn === 'UFR')
+
 if (failed) {
   console.log(`${failed} check(s) failed`)
   process.exit(1)

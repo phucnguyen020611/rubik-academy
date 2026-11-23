@@ -48,7 +48,7 @@ export class TwistyView {
   private drag: { turn: string; pieces: number[]; axis: THREE.Vector3; angle: number } | null = null
   readonly def: TwistyDef
 
-  constructor(def: TwistyDef, build: (i: number) => THREE.Object3D, centre: THREE.Vector3) {
+  constructor(def: TwistyDef, build: (i: number) => THREE.Object3D, centre: THREE.Vector3, core?: THREE.Object3D) {
     this.def = def
     this.state = solvedState(def)
     this.objs = def.pieces.map((_, i) => {
@@ -64,6 +64,7 @@ export class TwistyView {
       this.content.add(o)
       return o
     })
+    if (core) this.content.add(core)
     this.content.position.copy(centre).negate()
     this.group.add(this.content)
   }

@@ -8,7 +8,7 @@ import { TwistyView } from './TwistyView'
 import type { PuzzleEntry } from './registry'
 
 function TwistyObject({ entry, speed, onReady, onMove, appear }: { entry: PuzzleEntry; speed: number; onReady?: (v: TwistyView) => void; onMove?: (label: string, solved: boolean) => void; appear?: number }) {
-  const view = useMemo(() => new TwistyView(entry.def, entry.build, entry.centre), [entry])
+  const view = useMemo(() => new TwistyView(entry.def, entry.build, entry.centre, entry.core?.()), [entry])
   const pop = useRef(0)
   useEffect(() => () => view.dispose(), [view])
   useEffect(() => {
