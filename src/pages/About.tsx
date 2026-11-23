@@ -19,26 +19,26 @@ const REPO = 'https://github.com/phucnguyen020611/rubik-academy'
  * Until then each slot shows a placeholder frame.
  */
 const PHOTOS: { src: string | null; caption: Tx }[] = [
-  { src: null, caption: L('Hai anh em và mấy khối Rubik đầu tiên', 'My brother and me with our first cubes') },
-  { src: null, caption: L('Những buổi thi xem ai giải nhanh hơn', 'Racing to see who solves it first') },
+  { src: null, caption: L('Hai anh em với mấy khối Rubik đầu tiên', 'My brother and me with our first cubes') },
+  { src: null, caption: L('Thi xem ai giải nhanh hơn', 'Seeing who can solve it faster') },
 ]
 
 const STORY: Tx[] = [
   L(
-    'Tôi và em trai mê Rubik từ hồi còn nhỏ. Ban đầu chỉ là xoay cho vui, rồi thành những buổi tối ngồi thi xem ai giải nhanh hơn, ai thuộc thêm được một công thức mới.',
-    'My younger brother and I have loved the Rubik’s cube since we were kids. It started as something to fidget with, then turned into evenings spent racing each other and trading every new algorithm we learned.',
+    'Mình với em trai chơi Rubik cũng lâu rồi. Hồi đầu chỉ cầm xoay lung tung, sau đó tập giải theo hướng dẫn, tới giờ thì hay ngồi bấm giờ xem đứa nào nhanh hơn.',
+    'My younger brother and I have been playing with Rubik’s cubes for a long time. At first we just twisted them around, then we learned to solve them from guides, and these days we mostly time each other to see who’s faster.',
   ),
   L(
-    'Để học, hai anh em đọc đủ thứ: các trang dạy giải Rubik, bảng công thức in ra giấy, video quay chậm từng bước. Cái khó nhất luôn là hình dung. Nhìn một dãy ký hiệu như R U R′ U′ trên giấy rất khó biết khối sẽ xoay thế nào, và mỗi nguồn lại vẽ hình theo một kiểu khác nhau.',
-    'To learn, we read everything we could find: cube-solving websites, printed algorithm sheets, slowed-down videos. The hard part was always picturing it. A string like R U R′ U′ on paper doesn’t tell you what the cube will actually do, and every source drew its diagrams differently.',
+    'Hồi học, mình đọc khá nhiều trang dạy giải Rubik, in bảng công thức ra giấy, xem video rồi tua đi tua lại. Khó nhất là nhìn mấy ký hiệu kiểu R U R′ U′ mà không hình dung ra khối sẽ xoay thế nào. Mỗi chỗ lại vẽ hình một kiểu, đọc qua đọc lại nhiều khi rối thêm.',
+    'When we were learning, I read a lot of cube tutorials, printed out algorithm sheets and kept rewinding videos. The hardest part was looking at something like R U R′ U′ and not being able to picture what the cube would do. Every source drew its diagrams a bit differently too, which didn’t help.',
   ),
   L(
-    'Nên tôi tự dựng Rubik Academy: một chỗ bằng tiếng Việt, nơi công thức nào cũng chạy được trên khối 3D, có thể tua từng nước, xoay quanh để xem, và hình minh hoạ luôn khớp với công thức vì chúng được tính ra từ chính công thức đó.',
-    'So I built Rubik Academy: one place, in Vietnamese and English, where every algorithm plays on a 3D cube you can step through and turn around, and where every diagram matches its algorithm because it is computed from it.',
+    'Nên mình làm trang này. Công thức nào cũng có khối 3D để bấm xem từng nước, muốn xoay qua lại nhìn kỹ cũng được. Hình minh hoạ được tạo ra từ chính công thức nên lúc nào cũng khớp.',
+    'So I made this site. Every algorithm has a 3D cube you can step through move by move and turn around to look at. The diagrams are generated from the algorithms themselves, so they always match.',
   ),
   L(
-    'Trang này vẫn đang được làm tiếp. Em trai tôi là người thử đầu tiên cho mọi tính năng, và cũng là người chê thẳng nhất.',
-    'It is still a work in progress. My brother tests every feature first, and he is also its harshest critic.',
+    'Trang vẫn đang làm tiếp. Làm xong cái gì mình cũng đưa em trai thử trước, và nó chê cũng không ít.',
+    'It’s still a work in progress. Whenever I finish something, my brother gets to try it first, and he’s never short of complaints.',
   ),
 ]
 
@@ -53,8 +53,8 @@ export default function About() {
   return (
     <div className="page">
       <div className="container about">
-        <PageHead eyebrow={t(L('Giới thiệu', 'About'))} title={t(L('Hai anh em và một khối Rubik', 'Two brothers and a cube'))}>
-          <p>{t(L('Rubik Academy bắt đầu từ một sở thích chung trong nhà, rồi lớn dần thành một trang học Rubik đầy đủ.', 'Rubik Academy started as a hobby we shared at home and slowly grew into a full place to learn the cube.'))}</p>
+        <PageHead eyebrow={t(L('Giới thiệu', 'About'))} title={t(L('Về Rubik Academy', 'About Rubik Academy'))}>
+          <p>{t(L('Chào bạn, mình là Phúc. Đây là trang mình tự làm, ban đầu chỉ để hai anh em trong nhà học Rubik cho tiện.', 'Hi, I’m Phuc. I made this site myself, at first just so my brother and I had an easier way to learn the cube.'))}</p>
         </PageHead>
 
         <section className="about-author card fade-up">
@@ -62,7 +62,7 @@ export default function About() {
           <div className="about-author-body">
             <span className="eyebrow">{t(L('Tác giả', 'Made by'))}</span>
             <h2>Phuc Nguyen Hoang</h2>
-            <p className="text-2">{t(L('Thiết kế, lập trình và viết toàn bộ nội dung. Thích Rubik, thích làm sản phẩm, và thích những thứ được làm kỹ.', 'Design, code and every word of the content. Into cubes, building products and things made with care.'))}</p>
+            <p className="text-2">{t(L('Mình tự thiết kế, tự code và tự viết nội dung cho trang. Có góp ý gì thì cứ nhắn mình qua GitHub nhé.', 'I designed, coded and wrote everything on this site. If you have feedback, feel free to reach me on GitHub.'))}</p>
             <div className="row">
               <Button href={GITHUB} variant="primary" size="sm" icon={GithubMark} target="_blank" rel="noreferrer">
                 GitHub
@@ -119,14 +119,14 @@ export default function About() {
             <p className="text-2">
               {t(
                 L(
-                  'Cảm ơn em trai tôi, người cùng chơi và cùng học từ những ngày đầu. Cảm ơn cộng đồng Rubik đã chia sẻ công thức, ký hiệu và phương pháp một cách rộng rãi; phần lớn những gì tôi biết đều học từ đó.',
-                  'Thanks to my brother, who has played and learned alongside me from the start. And thanks to the cubing community for sharing algorithms, notation and methods so freely; most of what I know came from them.',
+                  'Cảm ơn em trai mình đã chơi cùng và chịu khó thử giúp từ hồi trang còn chưa ra hình gì. Cảm ơn mọi người trong cộng đồng Rubik đã chia sẻ công thức và cách giải, phần lớn những gì mình biết là học từ đó.',
+                  'Thanks to my brother for playing with me and testing things back when the site barely worked. And thanks to everyone in the cubing community who shares algorithms and methods; most of what I know I learned from them.',
                 ),
               )}
             </p>
           </div>
           <Button to="/learn" variant="soft" size="sm" iconRight={ArrowRight}>
-            {t(L('Bắt đầu học', 'Start learning'))}
+            {t(L('Vào học thôi', 'Start learning'))}
           </Button>
         </section>
       </div>

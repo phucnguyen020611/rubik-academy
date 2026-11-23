@@ -311,6 +311,59 @@ function Books({ colors, rotation = 0 }: { colors: string[]; rotation?: number }
   )
 }
 
+const AVATAR_URL = 'https://avatars.githubusercontent.com/phucnguyen020611?s=320'
+
+/** Standing picture frame (black frame, white mat) with a small easel leg behind it. */
+function PhotoFrame({ url, w = 0.5, h = 0.6 }: { url: string; w?: number; h?: number }) {
+  const [map, setMap] = useState<THREE.Texture | null>(null)
+  useEffect(() => {
+    let alive = true
+    const loader = new THREE.TextureLoader()
+    loader.setCrossOrigin('anonymous')
+    loader.load(
+      url,
+      (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace
+        tex.anisotropy = 8
+        if (alive) setMap(tex)
+        else tex.dispose()
+      },
+      undefined,
+      () => {},
+    )
+    return () => {
+      alive = false
+    }
+  }, [url])
+  const lean = -0.14
+  const photo = Math.min(w, h) - 0.13
+  return (
+    <group rotation-x={lean} position-y={(h / 2) * Math.cos(lean)}>
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[w, h, 0.035]} />
+        <meshStandardMaterial color="#17191a" roughness={0.35} />
+      </mesh>
+      <mesh position-z={0.0181}>
+        <planeGeometry args={[w - 0.05, h - 0.05]} />
+        <meshStandardMaterial color="#f4f2ec" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.02, 0.0186]}>
+        <planeGeometry args={[photo, photo]} />
+        {map ? <meshStandardMaterial key="photo" map={map} emissive="#ffffff" emissiveMap={map} emissiveIntensity={0.55} roughness={0.6} /> : <meshStandardMaterial key="blank" color="#d8dcd8" roughness={0.9} />}
+      </mesh>
+      {/* glass */}
+      <mesh position-z={0.0195}>
+        <planeGeometry args={[w - 0.05, h - 0.05]} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.06} roughness={0.05} metalness={0.2} />
+      </mesh>
+      <mesh position={[0, -0.04, -0.1]} rotation-x={0.55}>
+        <boxGeometry args={[0.07, h * 0.82, 0.015]} />
+        <meshStandardMaterial color="#17191a" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
 /** Narrow floating shelves either side of the main unit, one puzzle per board. */
 const VARIANTS: { name: Tx; note: Tx; el: () => ReactNode }[][] = [
   [
@@ -377,10 +430,17 @@ function CollectionWall({ p, k, t, onPick }: WallProps) {
           {cube(4, 0.7, cell(2, 2), 2, "Rw U2 Fw' R2 Uw", 0.3)}
           <group position={cell(0, 1)}>
             <Pop k={k} delay={0.55}>
-              <group position={[0, 0.077, 0]} scale={0.32}>
+              <group position={[-0.3, 0.077, -0.04]} scale={0.3}>
                 <Model url={TROPHY_URL} />
               </group>
             </Pop>
+            <group position={[0.22, 0, 0.04]} rotation-y={-0.28}>
+              <Pop k={k} delay={0.65}>
+                <Hoverable onClick={() => onPick({ kind: 'link', to: '/about', label: 'About' })} label={t(L('Phuc Nguyen Hoang · người làm trang này', 'Phuc Nguyen Hoang · made this site'))} lift={0.02}>
+                  <PhotoFrame url={AVATAR_URL} />
+                </Hoverable>
+              </Pop>
+            </group>
           </group>
           {cube(3, 0.6, cell(1, 1), 3, '', -0.55, "R U R' U R U2 R'")}
           <group position={cell(2, 1)}>
