@@ -17,7 +17,7 @@ interface Common {
 
 type ButtonProps = Common & ButtonHTMLAttributes<HTMLButtonElement> & { to?: undefined; href?: undefined }
 type LinkProps = Common & { to: string; href?: undefined; onClick?: () => void; title?: string; 'aria-label'?: string }
-type AnchorProps = Common & { href: string; to?: undefined; download?: string; onClick?: () => void; title?: string }
+type AnchorProps = Common & { href: string; to?: undefined; download?: string; onClick?: () => void; title?: string; target?: string; rel?: string }
 
 const ICON = { sm: 15, md: 17, lg: 19 }
 

@@ -90,11 +90,12 @@ export function Footer() {
             <Link to="/timer">{t(L('Bấm giờ', 'Timer'))}</Link>
             <Link to="/trainer">{t(L('Luyện công thức', 'Algorithm trainer'))}</Link>
             <Link to="/scan">{t(L('Quét khối bằng camera', 'Scan your cube'))}</Link>
+            <Link to="/about">{t(L('Giới thiệu', 'About'))}</Link>
           </div>
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Rubik Academy</span>
-          <span>{t(L('Thiết kế và phát triển bởi Phuc Nguyen Hoang', 'Designed and built by Phuc Nguyen Hoang'))}</span>
+          <Link to="/about">{t(L('Thiết kế và phát triển bởi Phuc Nguyen Hoang', 'Designed and built by Phuc Nguyen Hoang'))}</Link>
         </div>
       </div>
     </footer>

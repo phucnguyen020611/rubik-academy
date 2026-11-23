@@ -16,6 +16,7 @@ const Patterns = lazy(() => import('./pages/Patterns'))
 const Timer = lazy(() => import('./pages/Timer'))
 const Trainer = lazy(() => import('./pages/Trainer'))
 const Scan = lazy(() => import('./pages/Scan'))
+const About = lazy(() => import('./pages/About'))
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/timer" element={<Timer />} />
           <Route path="/trainer" element={<Trainer />} />
           <Route path="/scan" element={<Scan />} />
+          <Route path="/about" element={<About />} />
           <Route path="*" element={<Article slug="404" />} />
         </Routes>
       </Suspense>
